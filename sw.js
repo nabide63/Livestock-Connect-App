@@ -17,7 +17,10 @@ const STATIC_URLS = [
   BASE + 'profile.html',
   BASE + 'css/styles.css',
   BASE + 'js/app.js',
-  BASE + 'data/mock-data.js'
+  BASE + 'js/auth.js',
+  BASE + 'js/livestock.js',
+  BASE + 'data/mock-data.js',
+  BASE + 'data/seed.js'
 ];
 
 self.addEventListener('install', function (event) {
