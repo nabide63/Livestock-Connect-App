@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Sign in to Livestock Connect.">
+  <title>Login - Livestock Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="no-nav">
+  <div class="app-container">
+    <header class="page-header">
+      <h1>Login</h1>
+      <p class="text-muted">Enter your phone and password to continue.</p>
+    </header>
+
+    <div id="login-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="phone">Phone Number</label>
+        <input type="tel" id="phone" class="form-input" name="phone" placeholder="07XXXXXXXX" required autocomplete="tel" aria-required="true">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" class="form-input" name="password" placeholder="Your password" required autocomplete="current-password" aria-required="true">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
+
+    <p class="text-muted mt-2" style="text-align: center;">
+      No account? <a href="register.html">Register</a>
+    </p>
+  </div>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('login-form');
+      const alertEl = document.getElementById('login-alert');
+
+      const showAlert = (message, type) => {
+        alertEl.textContent = message;
+        alertEl.className = 'alert alert-' + (type === 'error' ? 'error' : 'success');
+        alertEl.style.display = 'block';
+      };
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        alertEl.style.display = 'none';
+
+        const phone = form.phone.value.trim();
+        const password = form.password.value;
+
+        const result = window.LivestockConnect.loginUser(phone, password);
+        if (result.success) {
+          showAlert(result.message, 'success');
+          window.location.href = 'dashboard.html';
+        } else {
+          showAlert(result.message, 'error');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

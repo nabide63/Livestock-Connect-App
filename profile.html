@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Your Livestock Connect profile.">
+  <title>My Profile - Livestock Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="profile-header">
+      <div class="profile-avatar" id="profile-avatar" aria-hidden="true">👤</div>
+      <h1 id="profile-name">Farmer</h1>
+      <p class="text-muted" id="profile-phone">—</p>
+    </header>
+
+    <div class="card">
+      <div class="profile-detail">
+        <span class="text-muted">Farm Location</span>
+        <span id="profile-location">—</span>
+      </div>
+      <div class="profile-detail">
+        <span class="text-muted">Livestock Type</span>
+        <span id="profile-livestock-type">—</span>
+      </div>
+    </div>
+
+    <h2 class="page-header">Notifications</h2>
+    <div id="notifications-list"></div>
+    <div id="notifications-empty" class="empty-state" style="display: none;">
+      <div class="empty-state-icon" aria-hidden="true">🔔</div>
+      <p>No notifications yet.</p>
+    </div>
+
+    <button type="button" class="btn btn-outline btn-block mt-2" id="logout-btn">Logout</button>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="dashboard.html" class="nav-item">
+      <span class="nav-item-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="livestock.html" class="nav-item">
+      <span class="nav-item-icon">🐄</span>
+      <span>Livestock</span>
+    </a>
+    <a href="add-livestock.html" class="nav-item">
+      <span class="nav-item-icon">➕</span>
+      <span>Add</span>
+    </a>
+    <a href="prices.html" class="nav-item">
+      <span class="nav-item-icon">💰</span>
+      <span>Prices</span>
+    </a>
+    <a href="health.html" class="nav-item">
+      <span class="nav-item-icon">💚</span>
+      <span>Health</span>
+    </a>
+  </nav>
+
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth()) return;
+
+      const user = window.LivestockConnect.getCurrentUser();
+      if (user) {
+        const nameEl = document.getElementById('profile-name');
+        const phoneEl = document.getElementById('profile-phone');
+        const locationEl = document.getElementById('profile-location');
+        const typeEl = document.getElementById('profile-livestock-type');
+        const avatarEl = document.getElementById('profile-avatar');
+        if (nameEl) nameEl.textContent = user.fullName || 'Farmer';
+        if (phoneEl) phoneEl.textContent = user.phone || '—';
+        if (locationEl) locationEl.textContent = user.farmLocation || '—';
+        if (typeEl) typeEl.textContent = user.livestockType || '—';
+        if (avatarEl) avatarEl.textContent = user.fullName ? user.fullName.charAt(0).toUpperCase() : '👤';
+      }
+
+      const notifications = window.LivestockConnect.getStorage(
+        window.LivestockConnect.STORAGE_KEYS.NOTIFICATIONS,
+        []
+      );
+      const listEl = document.getElementById('notifications-list');
+      const emptyEl = document.getElementById('notifications-empty');
+      if (notifications.length === 0) {
+        listEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+      } else {
+        notifications.slice(0, 10).forEach(function (n) {
+          const div = document.createElement('div');
+          div.className = 'health-tip-card';
+          div.innerHTML = '<strong>' + (n.title || 'Notification') + '</strong><p class="health-tip-desc">' + (n.message || '') + '</p>';
+          listEl.appendChild(div);
+        });
+      }
+
+      document.getElementById('logout-btn').addEventListener('click', function () {
+        window.LivestockConnect.logout();
+      });
+    })();
+  </script>
+</body>
+</html>

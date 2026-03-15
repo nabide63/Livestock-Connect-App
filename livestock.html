@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="View your livestock records.">
+  <title>My Livestock - Livestock Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>My Livestock</h1>
+      <p class="text-muted">Your animal records. Tap Edit or Delete to change.</p>
+    </header>
+
+    <div id="livestock-list" role="list"></div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <div class="empty-state-icon" aria-hidden="true">🐄</div>
+      <p>No animals yet. Add your first animal to get started.</p>
+      <a href="add-livestock.html" class="btn btn-primary mt-2">Add Animal</a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="dashboard.html" class="nav-item">
+      <span class="nav-item-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="livestock.html" class="nav-item active" aria-current="page">
+      <span class="nav-item-icon">🐄</span>
+      <span>Livestock</span>
+    </a>
+    <a href="add-livestock.html" class="nav-item">
+      <span class="nav-item-icon">➕</span>
+      <span>Add</span>
+    </a>
+    <a href="prices.html" class="nav-item">
+      <span class="nav-item-icon">💰</span>
+      <span>Prices</span>
+    </a>
+    <a href="health.html" class="nav-item">
+      <span class="nav-item-icon">💚</span>
+      <span>Health</span>
+    </a>
+  </nav>
+
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth()) return;
+
+      const listEl = document.getElementById('livestock-list');
+      const emptyEl = document.getElementById('empty-state');
+      const LC = window.LivestockConnect;
+
+      const renderList = () => {
+        const list = LC.getLivestock();
+        listEl.innerHTML = '';
+
+        if (list.length === 0) {
+          listEl.style.display = 'none';
+          emptyEl.style.display = 'block';
+          return;
+        }
+
+        listEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+
+        list.forEach(function (item) {
+          const card = document.createElement('div');
+          card.className = 'livestock-item';
+          card.setAttribute('role', 'listitem');
+
+          const badgeClass = LC.getHealthBadgeClass(item.healthStatus);
+
+          card.innerHTML =
+            '<div class="livestock-item-header">' +
+              '<span class="livestock-item-type">' + (item.animalType || 'Animal') + '</span>' +
+              '<span class="health-badge ' + badgeClass + '">' + (item.healthStatus || 'Healthy') + '</span>' +
+            '</div>' +
+            '<div class="livestock-item-meta">Age: ' + (item.age || '-') + ' &bull; Weight: ' + (item.weight || '-') + ' kg</div>' +
+            (item.notes ? '<p class="text-muted" style="margin:0;font-size:0.9rem;">' + item.notes + '</p>' : '') +
+            '<div class="livestock-item-actions">' +
+              '<button type="button" class="btn btn-secondary edit-btn" data-id="' + item.id + '" aria-label="Edit this record">Edit</button>' +
+              '<button type="button" class="btn btn-danger delete-btn" data-id="' + item.id + '" aria-label="Delete this record">Delete</button>' +
+            '</div>';
+
+          listEl.appendChild(card);
+        });
+
+        listEl.querySelectorAll('.edit-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const id = this.getAttribute('data-id');
+            window.location.href = 'add-livestock.html?edit=' + id;
+          });
+        });
+
+        listEl.querySelectorAll('.delete-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const id = this.getAttribute('data-id');
+            if (confirm('Delete this animal record?')) {
+              LC.deleteLivestock(id);
+              LC.showToast('Record deleted.');
+              renderList();
+            }
+          });
+        });
+      };
+
+      renderList();
+    })();
+  </script>
+</body>
+</html>
