@@ -92,9 +92,14 @@
   <script>
     (function () {
       if (!window.LivestockConnect.requireAuth('farmer')) return;
-      const user = window.LivestockConnect.getCurrentUser();
-      const el = document.getElementById('welcome-text');
-      if (el && user && user.fullName) el.textContent = 'Hello ' + user.fullName + '. Manage your livestock and see market info.';
+      const LC = window.LivestockConnect;
+      const refreshContent = () => {
+        const user = LC.getCurrentUser();
+        const el = document.getElementById('welcome-text');
+        if (el && user && user.fullName) el.textContent = 'Hello ' + user.fullName + '. Manage your livestock and see market info.';
+      };
+      refreshContent();
+      LC.onPageShowRefresh(refreshContent);
     })();
   </script>
 </body>

@@ -106,9 +106,10 @@
       }
 
       const Livestock = window.LivestockConnectLivestock;
-      const listing = Livestock.getListingById(id);
+      const LC = window.LivestockConnect;
+      let listing = Livestock.getListingById(id);
       if (!listing) {
-        window.LivestockConnect.showToast('Listing not found.', 'error');
+        LC.showToast('Listing not found.', 'error');
         window.location.href = 'my-listings.html';
         return;
       }
@@ -116,6 +117,7 @@
       const form = document.getElementById('edit-animal-form');
       const alertEl = document.getElementById('edit-alert');
       const animalTypeSelect = document.getElementById('animalType');
+      const currentPhotoEl = document.getElementById('current-photo');
 
       const animalTypes = typeof MOCK_DATA !== 'undefined' && MOCK_DATA.animalTypes
         ? MOCK_DATA.animalTypes
@@ -128,20 +130,32 @@
         animalTypeSelect.appendChild(opt);
       });
 
-      form.listingId.value = listing.id;
-      form.animalType.value = listing.animalType || '';
-      form.age.value = listing.age || '';
-      form.weight.value = listing.weight || '';
-      form.price.value = listing.price || '';
-      form.healthStatus.value = listing.healthStatus || 'Healthy';
-      form.location.value = listing.location || '';
-      form.description.value = listing.description || '';
+      const refreshContent = () => {
+        listing = Livestock.getListingById(id);
+        if (!listing) {
+          LC.showToast('Listing not found.', 'error');
+          window.location.href = 'my-listings.html';
+          return;
+        }
+        form.listingId.value = listing.id;
+        form.animalType.value = listing.animalType || '';
+        form.age.value = listing.age || '';
+        form.weight.value = listing.weight || '';
+        form.price.value = listing.price || '';
+        form.healthStatus.value = listing.healthStatus || 'Healthy';
+        form.location.value = listing.location || '';
+        form.description.value = listing.description || '';
+        if (listing.imageData) {
+          currentPhotoEl.innerHTML = '<img src="' + listing.imageData + '" alt="Current photo" class="photo-preview-img">';
+          currentPhotoEl.style.display = 'block';
+        } else {
+          currentPhotoEl.innerHTML = '';
+          currentPhotoEl.style.display = 'none';
+        }
+      };
 
-      const currentPhotoEl = document.getElementById('current-photo');
-      if (listing.imageData) {
-        currentPhotoEl.innerHTML = '<img src="' + listing.imageData + '" alt="Current photo" class="photo-preview-img">';
-        currentPhotoEl.style.display = 'block';
-      }
+      refreshContent();
+      LC.onPageShowRefresh(refreshContent);
 
       function resizeImageToDataUrl(file, maxWidth, quality, callback) {
         const reader = new FileReader();

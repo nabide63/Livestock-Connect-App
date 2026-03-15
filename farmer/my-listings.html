@@ -57,38 +57,41 @@
       const LC = window.LivestockConnect;
       const Livestock = window.LivestockConnectLivestock;
 
-      const list = Livestock.getMyListings();
-
-      if (list.length === 0) {
-        container.style.display = 'none';
-        emptyState.style.display = 'block';
-        return;
-      }
-
-      list.forEach(function (item) {
-        const card = document.createElement('div');
-        card.className = 'listing-card';
-        card.setAttribute('role', 'listitem');
-        const priceNum = parseInt(item.price, 10);
-        const priceStr = isNaN(priceNum) ? item.price : LC.formatUGX(priceNum);
-        const imageUrl = Livestock.getListingImageUrl(item);
-        const imageHtml = imageUrl
-          ? '<div class="listing-card-image"><img src="' + imageUrl.replace(/"/g, '&quot;') + '" alt=""></div>'
-          : '<div class="listing-card-image listing-card-image-placeholder"><span aria-hidden="true">🐄</span></div>';
-        card.innerHTML =
-          imageHtml +
-          '<div class="listing-card-header">' +
-            '<span class="listing-card-type">' + (item.animalType || '—') + '</span>' +
-            '<span class="listing-card-price">' + priceStr + '</span>' +
-          '</div>' +
-          '<div class="listing-card-meta">Weight: ' + (item.weight || '—') + ' kg</div>' +
-          '<div class="listing-card-meta">Location: ' + (item.location || '—') + '</div>' +
-          '<div class="listing-card-actions">' +
-            '<a href="edit-animal.html?id=' + encodeURIComponent(item.id) + '" class="btn btn-outline">Edit</a>' +
-            '<button type="button" class="btn btn-danger" data-id="' + item.id + '" aria-label="Delete listing">Delete</button>' +
-          '</div>';
-        container.appendChild(card);
-      });
+      const refreshContent = () => {
+        const list = Livestock.getMyListings();
+        container.innerHTML = '';
+        if (list.length === 0) {
+          container.style.display = 'none';
+          emptyState.style.display = 'block';
+          return;
+        }
+        container.style.display = 'flex';
+        emptyState.style.display = 'none';
+        list.forEach(function (item) {
+          const card = document.createElement('div');
+          card.className = 'listing-card';
+          card.setAttribute('role', 'listitem');
+          const priceNum = parseInt(item.price, 10);
+          const priceStr = isNaN(priceNum) ? item.price : LC.formatUGX(priceNum);
+          const imageUrl = Livestock.getListingImageUrl(item);
+          const imageHtml = imageUrl
+            ? '<div class="listing-card-image"><img src="' + imageUrl.replace(/"/g, '&quot;') + '" alt=""></div>'
+            : '<div class="listing-card-image listing-card-image-placeholder"><span aria-hidden="true">🐄</span></div>';
+          card.innerHTML =
+            imageHtml +
+            '<div class="listing-card-header">' +
+              '<span class="listing-card-type">' + (item.animalType || '—') + '</span>' +
+              '<span class="listing-card-price">' + priceStr + '</span>' +
+            '</div>' +
+            '<div class="listing-card-meta">Weight: ' + (item.weight || '—') + ' kg</div>' +
+            '<div class="listing-card-meta">Location: ' + (item.location || '—') + '</div>' +
+            '<div class="listing-card-actions">' +
+              '<a href="edit-animal.html?id=' + encodeURIComponent(item.id) + '" class="btn btn-outline">Edit</a>' +
+              '<button type="button" class="btn btn-danger" data-id="' + item.id + '" aria-label="Delete listing">Delete</button>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      };
 
       container.addEventListener('click', function (e) {
         const btn = e.target.closest('button[data-id]');
@@ -98,8 +101,11 @@
         if (!confirm('Remove this listing?')) return;
         const result = Livestock.deleteListing(id);
         LC.showToast(result.message, result.success ? 'success' : 'error');
-        if (result.success) window.location.reload();
+        if (result.success) refreshContent();
       });
+
+      refreshContent();
+      LC.onPageShowRefresh(refreshContent);
     })();
   </script>
 </body>

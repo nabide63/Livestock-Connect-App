@@ -94,14 +94,20 @@
         });
       };
 
-      let allListings = Livestock.getAllListings();
-      renderListings(allListings);
+      let allListings = [];
+      const refreshContent = () => {
+        allListings = Livestock.getAllListings();
+        renderListings(allListings);
+      };
 
       searchInput.addEventListener('input', function () {
         const term = searchInput.value.trim();
         const filtered = Livestock.filterListings(allListings, term);
         renderListings(filtered);
       });
+
+      refreshContent();
+      LC.onPageShowRefresh(refreshContent);
     })();
   </script>
 </body>

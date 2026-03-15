@@ -106,19 +106,21 @@
             '</div>';
           listEl.appendChild(card);
         });
-
-        listEl.querySelectorAll('button[data-id]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            const id = this.getAttribute('data-id');
-            if (!confirm('Remove this listing?')) return;
-            const result = Livestock.deleteListing(id);
-            LC.showToast(result.message, result.success ? 'success' : 'error');
-            if (result.success) renderList();
-          });
-        });
       };
 
+      listEl.addEventListener('click', function (e) {
+        const btn = e.target.closest('button[data-id]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        if (!confirm('Remove this listing?')) return;
+        const result = Livestock.deleteListing(id);
+        LC.showToast(result.message, result.success ? 'success' : 'error');
+        if (result.success) renderList();
+      });
+
       renderList();
+      window.LivestockConnect.onPageShowRefresh(renderList);
     })();
   </script>
 </body>

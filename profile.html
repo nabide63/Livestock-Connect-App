@@ -33,36 +33,43 @@
   <script src="js/auth.js"></script>
   <script>
     (function () {
-      const user = window.LivestockConnect.getCurrentUser();
+      const LC = window.LivestockConnect;
+      const user = LC.getCurrentUser();
       if (!user) {
         window.location.href = 'login.html';
         return;
       }
 
-      document.getElementById('profile-name').textContent = user.fullName || '—';
-      document.getElementById('profile-phone').textContent = user.phone || '—';
-      document.getElementById('profile-location').textContent = user.location || '—';
-      document.getElementById('profile-role').textContent = user.role === 'farmer' ? 'Farmer (Seller)' : 'Buyer';
+      const refreshContent = () => {
+        const u = LC.getCurrentUser();
+        if (!u) return;
+        document.getElementById('profile-name').textContent = u.fullName || '—';
+        document.getElementById('profile-phone').textContent = u.phone || '—';
+        document.getElementById('profile-location').textContent = u.location || '—';
+        document.getElementById('profile-role').textContent = u.role === 'farmer' ? 'Farmer (Seller)' : 'Buyer';
+        const navEl = document.getElementById('bottom-nav');
+        if (u.role === 'farmer') {
+          navEl.innerHTML =
+            '<a href="dashboard.html" class="nav-item"><span class="nav-item-icon">🏠</span><span>Home</span></a>' +
+            '<a href="farmer/add-animal.html" class="nav-item"><span class="nav-item-icon">➕</span><span>Add Animal</span></a>' +
+            '<a href="farmer/my-listings.html" class="nav-item"><span class="nav-item-icon">📋</span><span>My Listings</span></a>' +
+            '<a href="health.html" class="nav-item"><span class="nav-item-icon">💚</span><span>Health Tips</span></a>' +
+            '<a href="profile.html" class="nav-item active" aria-current="page"><span class="nav-item-icon">👤</span><span>Profile</span></a>';
+        } else {
+          navEl.innerHTML =
+            '<a href="buyer/marketplace.html" class="nav-item"><span class="nav-item-icon">🛒</span><span>Marketplace</span></a>' +
+            '<a href="buyer/marketplace.html" class="nav-item"><span class="nav-item-icon">🔍</span><span>Search</span></a>' +
+            '<a href="prices.html" class="nav-item"><span class="nav-item-icon">💰</span><span>Prices</span></a>' +
+            '<a href="profile.html" class="nav-item active" aria-current="page"><span class="nav-item-icon">👤</span><span>Profile</span></a>';
+        }
+      };
 
       document.getElementById('logout-btn').addEventListener('click', function () {
-        window.LivestockConnect.logout();
+        LC.logout();
       });
 
-      const navEl = document.getElementById('bottom-nav');
-      if (user.role === 'farmer') {
-        navEl.innerHTML =
-          '<a href="dashboard.html" class="nav-item"><span class="nav-item-icon">🏠</span><span>Home</span></a>' +
-          '<a href="farmer/add-animal.html" class="nav-item"><span class="nav-item-icon">➕</span><span>Add Animal</span></a>' +
-          '<a href="farmer/my-listings.html" class="nav-item"><span class="nav-item-icon">📋</span><span>My Listings</span></a>' +
-          '<a href="health.html" class="nav-item"><span class="nav-item-icon">💚</span><span>Health Tips</span></a>' +
-          '<a href="profile.html" class="nav-item active" aria-current="page"><span class="nav-item-icon">👤</span><span>Profile</span></a>';
-      } else {
-        navEl.innerHTML =
-          '<a href="buyer/marketplace.html" class="nav-item"><span class="nav-item-icon">🛒</span><span>Marketplace</span></a>' +
-          '<a href="buyer/marketplace.html" class="nav-item"><span class="nav-item-icon">🔍</span><span>Search</span></a>' +
-          '<a href="prices.html" class="nav-item"><span class="nav-item-icon">💰</span><span>Prices</span></a>' +
-          '<a href="profile.html" class="nav-item active" aria-current="page"><span class="nav-item-icon">👤</span><span>Profile</span></a>';
-      }
+      refreshContent();
+      LC.onPageShowRefresh(refreshContent);
     })();
   </script>
 </body>

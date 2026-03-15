@@ -85,7 +85,7 @@
       const reportByType = document.getElementById('report-by-type');
       const reportAvgWeight = document.getElementById('report-avg-weight');
 
-      const renderReport = () => {
+      const renderReport = (silent) => {
         const list = Livestock.getMyListings();
         const total = list.length;
 
@@ -126,12 +126,16 @@
 
         reportAvgWeight.textContent = weightCount > 0 ? (totalWeight / weightCount).toFixed(1) : '0';
 
-        LC.showToast('Report generated.');
+        if (!silent) LC.showToast('Report generated.');
       };
+
+      const refreshContent = () => renderReport(true);
 
       generateBtn.addEventListener('click', function () {
         renderReport();
       });
+
+      LC.onPageShowRefresh(refreshContent);
     })();
   </script>
 </body>
