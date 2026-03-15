@@ -49,6 +49,12 @@
         <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required aria-required="true">
       </div>
       <div class="form-group">
+        <label class="form-label" for="photo">Photo of livestock</label>
+        <div id="current-photo" class="photo-preview" style="display: none;" aria-hidden="true"></div>
+        <input type="file" id="photo" class="form-input form-input-file" name="photo" accept="image/*" aria-label="Change photo">
+        <div id="photo-preview" class="photo-preview" style="display: none;" aria-hidden="true"></div>
+      </div>
+      <div class="form-group">
         <label class="form-label" for="description">Description</label>
         <textarea id="description" class="form-textarea" name="description" rows="3"></textarea>
       </div>
@@ -129,6 +135,54 @@
       form.location.value = listing.location || '';
       form.description.value = listing.description || '';
 
+      const currentPhotoEl = document.getElementById('current-photo');
+      if (listing.imageData) {
+        currentPhotoEl.innerHTML = '<img src="' + listing.imageData + '" alt="Current photo" class="photo-preview-img">';
+        currentPhotoEl.style.display = 'block';
+      }
+
+      function resizeImageToDataUrl(file, maxWidth, quality, callback) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement('canvas');
+            let w = img.width;
+            let h = img.height;
+            if (w > maxWidth) {
+              h = (h * maxWidth) / w;
+              w = maxWidth;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            try {
+              callback(canvas.toDataURL('image/jpeg', quality));
+            } catch (err) {
+              callback(e.target.result);
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      const photoInput = document.getElementById('photo');
+      const photoPreview = document.getElementById('photo-preview');
+      photoInput.addEventListener('change', function () {
+        const file = this.files[0];
+        photoPreview.style.display = 'none';
+        photoPreview.innerHTML = '';
+        if (file && file.type.indexOf('image/') === 0) {
+          resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
+            photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="New photo" class="photo-preview-img">';
+            photoPreview.style.display = 'block';
+            photoPreview.setAttribute('data-url', dataUrl);
+          });
+        }
+      });
+
       const showAlert = (message, type) => {
         alertEl.textContent = message;
         alertEl.className = 'alert alert-' + (type === 'error' ? 'error' : 'success');
@@ -140,6 +194,7 @@
         alertEl.style.display = 'none';
 
         const priceVal = form.price.value.trim().replace(/\s/g, '');
+        const newImageData = photoPreview.getAttribute('data-url');
         const result = Livestock.updateListing(id, {
           animalType: form.animalType.value,
           age: form.age.value.trim(),
@@ -147,7 +202,8 @@
           price: priceVal,
           healthStatus: form.healthStatus.value,
           location: form.location.value.trim(),
-          description: form.description.value.trim()
+          description: form.description.value.trim(),
+          imageData: newImageData !== null && newImageData !== '' ? newImageData : (listing.imageData || null)
         });
 
         if (result.success) {

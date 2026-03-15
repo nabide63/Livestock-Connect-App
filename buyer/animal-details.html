@@ -74,8 +74,12 @@
       const priceNum = parseInt(listing.price, 10);
       const priceStr = isNaN(priceNum) ? listing.price : LC.formatUGX(priceNum);
       const healthClass = LC.getHealthBadgeClass(listing.healthStatus);
+      const detailImageHtml = listing.imageData
+        ? '<div class="listing-detail-image"><img src="' + listing.imageData + '" alt="Photo of ' + (listing.animalType || 'animal') + '"></div>'
+        : '<div class="listing-detail-image listing-detail-image-placeholder"><span aria-hidden="true">🐄</span><p class="text-muted">No photo</p></div>';
 
       container.innerHTML =
+        detailImageHtml +
         '<div class="detail-list">' +
           '<div class="detail-row"><span class="detail-label">Animal type</span><span class="detail-value">' + (listing.animalType || '—') + '</span></div>' +
           '<div class="detail-row"><span class="detail-label">Age</span><span class="detail-value">' + (listing.age || '—') + '</span></div>' +
