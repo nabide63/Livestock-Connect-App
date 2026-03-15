@@ -25,6 +25,7 @@ This folder contains **migrations** and config for the Supabase backend. The sch
    - `20250315000001_create_profiles.sql`
    - `20250315000002_create_listings.sql`
    - `20250315000003_create_reference_tables.sql`
+   - `20250315000004_cloudinary_integration.sql`
 
 ### Option B: Supabase CLI (local or linked project)
 
@@ -86,5 +87,6 @@ So **Cloudinary** = storage and delivery of images; **Supabase** = storage of th
 ## Migration file order
 
 1. `20250315000001_create_profiles.sql` – profiles + RLS + trigger
-2. `20250315000002_create_listings.sql` – listings + RLS (uses `handle_updated_at`)
+2. `20250315000002_create_listings.sql` – listings + RLS, `image_url` for Cloudinary
 3. `20250315000003_create_reference_tables.sql` – market_prices, health_tips + seed
+4. `20250315000004_cloudinary_integration.sql` – `listings.image_url` must be null or http(s) URL (Cloudinary)

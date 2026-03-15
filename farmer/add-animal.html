@@ -48,11 +48,15 @@
         <label class="form-label" for="location">Location</label>
         <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required aria-required="true">
       </div>
-      <div class="form-group">
+      <div class="form-group form-group-photo">
         <label class="form-label" for="photo">Photo of livestock</label>
         <input type="file" id="photo" class="form-input form-input-file" name="photo" accept="image/*" aria-label="Upload photo of the animal">
-        <div id="photo-preview" class="photo-preview" style="display: none;" aria-hidden="true"></div>
-        <span class="text-muted" style="font-size: 0.85rem;">Optional. Buyers will see this photo.</span>
+        <span class="text-muted" style="font-size: 0.85rem; display: block; margin-top: 4px;">Optional. Choose an image to preview below; it will be uploaded when you tap Post Animal.</span>
+        <div id="photo-preview-wrap" class="photo-preview-wrap" style="display: none;">
+          <span class="form-label" style="margin-bottom: 6px;">Preview before upload</span>
+          <div id="photo-preview" class="photo-preview" aria-hidden="true"></div>
+          <button type="button" id="photo-remove" class="btn btn-outline mt-1" style="font-size: 0.875rem;">Remove photo</button>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label" for="description">Description</label>
@@ -147,27 +151,44 @@
 
       const photoInput = document.getElementById('photo');
       const photoPreview = document.getElementById('photo-preview');
+      const photoPreviewWrap = document.getElementById('photo-preview-wrap');
+      const photoRemoveBtn = document.getElementById('photo-remove');
+
+      function showPreview(dataUrl) {
+        photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview of livestock photo" class="photo-preview-img">';
+        photoPreviewWrap.style.display = 'block';
+        photoPreview.setAttribute('data-url', dataUrl);
+      }
+
+      function hidePreview() {
+        photoPreview.innerHTML = '';
+        photoPreviewWrap.style.display = 'none';
+        photoPreview.removeAttribute('data-url');
+        photoInput.value = '';
+      }
+
       photoInput.addEventListener('change', function () {
         const file = this.files[0];
-        photoPreview.style.display = 'none';
         photoPreview.innerHTML = '';
+        photoPreviewWrap.style.display = 'none';
+        photoPreview.removeAttribute('data-url');
         if (file && file.type.indexOf('image/') === 0) {
-          resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
-            photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview" class="photo-preview-img">';
-            photoPreview.style.display = 'block';
-            photoPreview.setAttribute('data-url', dataUrl);
-          });
+          resizeImageToDataUrl(file, 600, 0.75, showPreview);
         }
       });
+
+      if (photoRemoveBtn) {
+        photoRemoveBtn.addEventListener('click', function () {
+          hidePreview();
+        });
+      }
 
       function submitRecord(record) {
         const result = window.LivestockConnectLivestock.addListing(record);
         if (result.success) {
           window.LivestockConnect.showToast(result.message, 'success');
           form.reset();
-          photoPreview.innerHTML = '';
-          photoPreview.style.display = 'none';
-          photoPreview.removeAttribute('data-url');
+          hidePreview();
           if (user && user.location) document.getElementById('location').value = user.location;
         } else {
           showAlert(result.message, 'error');
