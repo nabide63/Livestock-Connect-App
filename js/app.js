@@ -94,18 +94,23 @@
   };
 
   /**
-   * Registers a callback to run when the page is shown again (back/forward cache or tab focus).
-   * Call this with your page's "refresh content" function so data stays fresh when navigating.
+   * Registers a callback to run when the page is shown again (tab focus).
+   * Back/forward cache restores trigger an automatic full reload so content and images always load.
    */
   const onPageShowRefresh = (callback) => {
     if (typeof callback !== 'function') return;
-    window.addEventListener('pageshow', function (e) {
-      if (e.persisted) callback();
-    });
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') callback();
     });
   };
+
+  /**
+   * When user navigates back/forward, the page may be restored from cache (bfcache) and show
+   * stale or blank content until Ctrl+F5. Reload automatically so content and images load.
+   */
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.location.reload();
+  });
 
   window.LivestockConnect = {
     getStorage,
