@@ -1,40 +1,54 @@
 /**
- * Livestock Connect - Simple Service Worker
- * Caches static assets for offline use. Lightweight for slow connections.
+ * Livestock Connect - Service Worker
+ * Network-first for HTML and app scripts so first load is always fresh; cache for offline fallback.
  */
-const CACHE_NAME = 'livestock-connect-v1';
+const CACHE_NAME = 'livestock-connect-v2';
 const BASE = (self.location.pathname.replace(/sw\.js.*$/, '') || '/').replace(/\/?$/, '/');
-const STATIC_URLS = [
-  BASE + 'index.html',
-  BASE + 'login.html',
-  BASE + 'register.html',
-  BASE + 'dashboard.html',
-  BASE + 'livestock.html',
-  BASE + 'add-livestock.html',
-  BASE + 'prices.html',
-  BASE + 'health.html',
-  BASE + 'reports.html',
-  BASE + 'profile.html',
-  BASE + 'css/styles.css',
-  BASE + 'js/app.js',
-  BASE + 'js/auth.js',
-  BASE + 'js/livestock.js',
-  BASE + 'data/mock-data.js',
-  BASE + 'data/seed.js'
-];
+
+function isNetworkFirstRequest(request) {
+  const url = request.url;
+  if (request.mode === 'navigate') return true;
+  if (/\.html(\?|$)/i.test(url)) return true;
+  if (/\/js\/(app|auth|livestock|cloudinary)\.js(\?|$)/i.test(url)) return true;
+  if (/\/data\/(seed|mock-data)\.js(\?|$)/i.test(url)) return true;
+  return false;
+}
+
+function networkFirst(request) {
+  return fetch(request)
+    .then(function (res) {
+      if (res.status === 200 && res.type === 'basic') {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(request, clone);
+        });
+      }
+      return res;
+    })
+    .catch(function () {
+      return caches.match(request).then(function (cached) {
+        return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
+      });
+    });
+}
+
+function cacheFirst(request) {
+  return caches.match(request).then(function (cached) {
+    if (cached) return cached;
+    return fetch(request).then(function (res) {
+      if (res.status === 200 && res.type === 'basic') {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(request, clone);
+        });
+      }
+      return res;
+    });
+  });
+}
 
 self.addEventListener('install', function (event) {
-  const origin = self.location.origin;
-  const urls = STATIC_URLS.map(function (u) {
-    return u.startsWith('http') ? u : origin + (u.startsWith('/') ? u : '/' + u);
-  });
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(urls).catch(function () {});
-    }).then(function () {
-      return self.skipWaiting();
-    })
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', function (event) {
@@ -53,23 +67,9 @@ self.addEventListener('activate', function (event) {
 
 self.addEventListener('fetch', function (event) {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then(function (cached) {
-      if (cached) return cached;
-      return fetch(event.request).then(function (res) {
-        const clone = res.clone();
-        if (res.status === 200 && res.type === 'basic') {
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(event.request, clone);
-          });
-        }
-        return res;
-      }).catch(function () {
-        var fallbackUrl = self.location.origin + BASE + 'index.html';
-          return caches.match(fallbackUrl).then(function (c) {
-            return c || new Response('Offline', { status: 503, statusText: 'Offline' });
-          });
-      });
-    })
-  );
+  if (isNetworkFirstRequest(event.request)) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
+  event.respondWith(cacheFirst(event.request));
 });
