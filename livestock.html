@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="View your livestock records.">
+  <meta name="description" content="View your livestock listings.">
   <title>My Livestock - Livestock Connect</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -11,15 +11,15 @@
   <div class="app-container">
     <header class="page-header">
       <h1>My Livestock</h1>
-      <p class="text-muted">Your animal records. Tap Edit or Delete to change.</p>
+      <p class="text-muted">Your listed animals for sale. Edit or delete below, or use My Listings for the same data.</p>
     </header>
 
-    <div id="livestock-list" role="list"></div>
+    <div id="livestock-list" class="listing-cards" role="list"></div>
 
     <div id="empty-state" class="empty-state" style="display: none;">
-      <div class="empty-state-icon" aria-hidden="true">🐄</div>
-      <p>No animals yet. Add your first animal to get started.</p>
-      <a href="add-livestock.html" class="btn btn-primary mt-2">Add Animal</a>
+      <span class="empty-state-icon" aria-hidden="true">🐄</span>
+      <p>No animals listed yet. Add your first animal to get started.</p>
+      <a href="farmer/add-animal.html" class="btn btn-primary btn-block mt-2">Add Animal</a>
     </div>
   </div>
 
@@ -28,13 +28,17 @@
       <span class="nav-item-icon">🏠</span>
       <span>Home</span>
     </a>
+    <a href="farmer/add-animal.html" class="nav-item">
+      <span class="nav-item-icon">➕</span>
+      <span>Add Animal</span>
+    </a>
+    <a href="farmer/my-listings.html" class="nav-item">
+      <span class="nav-item-icon">📋</span>
+      <span>My Listings</span>
+    </a>
     <a href="livestock.html" class="nav-item active" aria-current="page">
       <span class="nav-item-icon">🐄</span>
       <span>Livestock</span>
-    </a>
-    <a href="add-livestock.html" class="nav-item">
-      <span class="nav-item-icon">➕</span>
-      <span>Add</span>
     </a>
     <a href="prices.html" class="nav-item">
       <span class="nav-item-icon">💰</span>
@@ -44,19 +48,26 @@
       <span class="nav-item-icon">💚</span>
       <span>Health</span>
     </a>
+    <a href="profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
   </nav>
 
   <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/livestock.js"></script>
   <script>
     (function () {
-      if (!window.LivestockConnect.requireAuth()) return;
+      if (!window.LivestockConnect.requireAuth('farmer')) return;
 
       const listEl = document.getElementById('livestock-list');
       const emptyEl = document.getElementById('empty-state');
       const LC = window.LivestockConnect;
+      const Livestock = window.LivestockConnectLivestock;
 
       const renderList = () => {
-        const list = LC.getLivestock();
+        const list = Livestock.getMyListings();
         listEl.innerHTML = '';
 
         if (list.length === 0) {
@@ -65,46 +76,39 @@
           return;
         }
 
-        listEl.style.display = 'block';
+        listEl.style.display = 'flex';
         emptyEl.style.display = 'none';
 
         list.forEach(function (item) {
-          const card = document.createElement('div');
-          card.className = 'livestock-item';
-          card.setAttribute('role', 'listitem');
-
+          const priceNum = parseInt(item.price, 10);
+          const priceStr = isNaN(priceNum) ? item.price : LC.formatUGX(priceNum);
           const badgeClass = LC.getHealthBadgeClass(item.healthStatus);
 
+          const card = document.createElement('div');
+          card.className = 'listing-card';
+          card.setAttribute('role', 'listitem');
           card.innerHTML =
-            '<div class="livestock-item-header">' +
-              '<span class="livestock-item-type">' + (item.animalType || 'Animal') + '</span>' +
+            '<div class="listing-card-header">' +
+              '<span class="listing-card-type">' + (item.animalType || 'Animal') + '</span>' +
               '<span class="health-badge ' + badgeClass + '">' + (item.healthStatus || 'Healthy') + '</span>' +
             '</div>' +
-            '<div class="livestock-item-meta">Age: ' + (item.age || '-') + ' &bull; Weight: ' + (item.weight || '-') + ' kg</div>' +
-            (item.notes ? '<p class="text-muted" style="margin:0;font-size:0.9rem;">' + item.notes + '</p>' : '') +
-            '<div class="livestock-item-actions">' +
-              '<button type="button" class="btn btn-secondary edit-btn" data-id="' + item.id + '" aria-label="Edit this record">Edit</button>' +
-              '<button type="button" class="btn btn-danger delete-btn" data-id="' + item.id + '" aria-label="Delete this record">Delete</button>' +
+            '<div class="listing-card-meta">Price: ' + priceStr + '</div>' +
+            '<div class="listing-card-meta">Weight: ' + (item.weight || '—') + ' kg &bull; Location: ' + (item.location || '—') + '</div>' +
+            (item.description ? '<p class="text-muted" style="margin:8px 0 0;font-size:0.9rem;">' + item.description + '</p>' : '') +
+            '<div class="listing-card-actions">' +
+              '<a href="farmer/edit-animal.html?id=' + encodeURIComponent(item.id) + '" class="btn btn-outline">Edit</a>' +
+              '<button type="button" class="btn btn-danger" data-id="' + item.id + '" aria-label="Delete this listing">Delete</button>' +
             '</div>';
-
           listEl.appendChild(card);
         });
 
-        listEl.querySelectorAll('.edit-btn').forEach(function (btn) {
+        listEl.querySelectorAll('button[data-id]').forEach(function (btn) {
           btn.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
-            window.location.href = 'add-livestock.html?edit=' + id;
-          });
-        });
-
-        listEl.querySelectorAll('.delete-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            const id = this.getAttribute('data-id');
-            if (confirm('Delete this animal record?')) {
-              LC.deleteLivestock(id);
-              LC.showToast('Record deleted.');
-              renderList();
-            }
+            if (!confirm('Remove this listing?')) return;
+            const result = Livestock.deleteListing(id);
+            LC.showToast(result.message, result.success ? 'success' : 'error');
+            if (result.success) renderList();
           });
         });
       };

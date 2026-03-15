@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Farmer dashboard - Livestock Connect">
+  <title>Dashboard - Livestock Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>Dashboard</h1>
+      <p class="text-muted" id="welcome-text">Manage your livestock and see market info.</p>
+    </header>
+
+    <div class="dashboard-cards" role="navigation" aria-label="Main features">
+      <a href="farmer/add-animal.html" class="feature-card">
+        <span class="feature-card-icon" aria-hidden="true">➕</span>
+        <div class="feature-card-text">
+          <h2>Add Animal</h2>
+          <p>Post an animal for sale</p>
+        </div>
+      </a>
+      <a href="farmer/my-listings.html" class="feature-card">
+        <span class="feature-card-icon" aria-hidden="true">📋</span>
+        <div class="feature-card-text">
+          <h2>My Listings</h2>
+          <p>View and edit your posted animals</p>
+        </div>
+      </a>
+      <a href="livestock.html" class="feature-card">
+        <span class="feature-card-icon" aria-hidden="true">🐄</span>
+        <div class="feature-card-text">
+          <h2>Livestock</h2>
+          <p>View all your animals in one list</p>
+        </div>
+      </a>
+      <a href="reports.html" class="feature-card">
+        <span class="feature-card-icon" aria-hidden="true">📊</span>
+        <div class="feature-card-text">
+          <h2>Reports</h2>
+          <p>Summary of your listings</p>
+        </div>
+      </a>
+      <a href="prices.html" class="feature-card">
+        <span class="feature-card-icon" aria-hidden="true">💰</span>
+        <div class="feature-card-text">
+          <h2>Market Prices</h2>
+          <p>Current livestock prices in UGX</p>
+        </div>
+      </a>
+      <a href="health.html" class="feature-card">
+        <span class="feature-card-icon" aria-hidden="true">💚</span>
+        <div class="feature-card-text">
+          <h2>Health Tips</h2>
+          <p>Simple advice for your animals</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="dashboard.html" class="nav-item active" aria-current="page">
+      <span class="nav-item-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="farmer/add-animal.html" class="nav-item">
+      <span class="nav-item-icon">➕</span>
+      <span>Add Animal</span>
+    </a>
+    <a href="farmer/my-listings.html" class="nav-item">
+      <span class="nav-item-icon">📋</span>
+      <span>My Listings</span>
+    </a>
+    <a href="livestock.html" class="nav-item">
+      <span class="nav-item-icon">🐄</span>
+      <span>Livestock</span>
+    </a>
+    <a href="health.html" class="nav-item">
+      <span class="nav-item-icon">💚</span>
+      <span>Health Tips</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth('farmer')) return;
+      const user = window.LivestockConnect.getCurrentUser();
+      const el = document.getElementById('welcome-text');
+      if (el && user && user.fullName) el.textContent = 'Hello ' + user.fullName + '. Manage your livestock and see market info.';
+    })();
+  </script>
+</body>
+</html>
