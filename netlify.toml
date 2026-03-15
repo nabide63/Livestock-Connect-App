@@ -1,0 +1,5 @@
+# Livestock Connect - Netlify config
+# Publish the repo root so all HTML (index, dashboard, health.html, etc.) are deployed.
+[build]
+  publish = "."
+  command = ""
