@@ -115,6 +115,15 @@
   const getFarmerById = (userId) => getUsers().find((u) => u.id === userId);
 
   /**
+   * Get image URL for a listing (imageData or image_url for Supabase compatibility).
+   * Returns null if missing or empty.
+   */
+  const getListingImageUrl = (listing) => {
+    const url = listing && (listing.imageData || listing.image_url);
+    return (typeof url === 'string' && url.trim().length > 0) ? url : null;
+  };
+
+  /**
    * Filter listings by search term (animal type, location).
    */
   const filterListings = (list, searchTerm) => {
@@ -136,6 +145,7 @@
     getMyListings,
     getListingById,
     getFarmerById,
+    getListingImageUrl,
     filterListings
   };
 })();

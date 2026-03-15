@@ -83,8 +83,9 @@
           const priceNum = parseInt(item.price, 10);
           const priceStr = isNaN(priceNum) ? item.price : LC.formatUGX(priceNum);
           const badgeClass = LC.getHealthBadgeClass(item.healthStatus);
-          const imageHtml = item.imageData
-            ? '<div class="listing-card-image"><img src="' + item.imageData + '" alt=""></div>'
+          const imageUrl = Livestock.getListingImageUrl(item);
+          const imageHtml = imageUrl
+            ? '<div class="listing-card-image"><img src="' + imageUrl.replace(/"/g, '&quot;') + '" alt=""></div>'
             : '<div class="listing-card-image listing-card-image-placeholder"><span aria-hidden="true">🐄</span></div>';
 
           const card = document.createElement('div');
