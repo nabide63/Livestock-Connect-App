@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Post an animal for sale - Livestock Connect">
+  <title>Add Animal - Livestock Connect</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>Add Animal</h1>
+      <p class="text-muted">Fill in the details to list your animal for sale.</p>
+    </header>
+
+    <div id="add-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
+
+    <form id="add-animal-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="animalType">Animal Type</label>
+        <select id="animalType" class="form-select" name="animalType" required aria-required="true">
+          <option value="">Choose type</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="age">Age</label>
+        <input type="text" id="age" class="form-input" name="age" placeholder="e.g. 2 years" aria-describedby="age-hint">
+        <span id="age-hint" class="text-muted" style="font-size: 0.85rem;">Optional</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="weight">Weight (kg)</label>
+        <input type="text" id="weight" class="form-input" name="weight" placeholder="e.g. 150" required aria-required="true">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="price">Price (UGX)</label>
+        <input type="text" id="price" class="form-input" name="price" placeholder="e.g. 1200000" required aria-required="true">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="healthStatus">Health Status</label>
+        <select id="healthStatus" class="form-select" name="healthStatus" aria-required="true">
+          <option value="Healthy">Healthy</option>
+          <option value="Needs Checkup">Needs Checkup</option>
+          <option value="Sick">Sick</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="location">Location</label>
+        <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required aria-required="true">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">Description</label>
+        <textarea id="description" class="form-textarea" name="description" placeholder="Any extra details about the animal" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Post Animal</button>
+    </form>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="../dashboard.html" class="nav-item">
+      <span class="nav-item-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="add-animal.html" class="nav-item active" aria-current="page">
+      <span class="nav-item-icon">➕</span>
+      <span>Add Animal</span>
+    </a>
+    <a href="my-listings.html" class="nav-item">
+      <span class="nav-item-icon">📋</span>
+      <span>My Listings</span>
+    </a>
+    <a href="../health.html" class="nav-item">
+      <span class="nav-item-icon">💚</span>
+      <span>Health Tips</span>
+    </a>
+    <a href="../profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/livestock.js"></script>
+  <script src="../data/mock-data.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth('farmer')) return;
+
+      const form = document.getElementById('add-animal-form');
+      const alertEl = document.getElementById('add-alert');
+      const animalTypeSelect = document.getElementById('animalType');
+
+      const animalTypes = typeof MOCK_DATA !== 'undefined' && MOCK_DATA.animalTypes
+        ? MOCK_DATA.animalTypes
+        : ['Cow', 'Goat', 'Sheep', 'Poultry'];
+      animalTypes.forEach(function (t) {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        animalTypeSelect.appendChild(opt);
+      });
+
+      const user = window.LivestockConnect.getCurrentUser();
+      if (user && user.location) document.getElementById('location').value = user.location;
+
+      const showAlert = (message, type) => {
+        alertEl.textContent = message;
+        alertEl.className = 'alert alert-' + (type === 'error' ? 'error' : 'success');
+        alertEl.style.display = 'block';
+      };
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        alertEl.style.display = 'none';
+
+        const priceVal = form.price.value.trim().replace(/\s/g, '');
+        const record = {
+          animalType: form.animalType.value,
+          age: form.age.value.trim(),
+          weight: form.weight.value.trim(),
+          price: priceVal,
+          healthStatus: form.healthStatus.value,
+          location: form.location.value.trim(),
+          description: form.description.value.trim()
+        };
+
+        const result = window.LivestockConnectLivestock.addListing(record);
+        if (result.success) {
+          window.LivestockConnect.showToast(result.message, 'success');
+          form.reset();
+          if (user && user.location) document.getElementById('location').value = user.location;
+        } else {
+          showAlert(result.message, 'error');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

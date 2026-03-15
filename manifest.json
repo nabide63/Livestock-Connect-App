@@ -1,7 +1,7 @@
 {
   "name": "Livestock Connect",
   "short_name": "Livestock Connect",
-  "description": "Helping farmers connect to better markets.",
+  "description": "Connecting farmers directly to buyers.",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#F5F5F5",

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Browse livestock for sale - Livestock Connect">
+  <title>Marketplace - Livestock Connect</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>Marketplace</h1>
+      <p class="text-muted">Browse animals for sale. Tap View Details to see more or contact the farmer.</p>
+    </header>
+
+    <div class="form-group search-box">
+      <label class="form-label" for="search-input">Search</label>
+      <input type="search" id="search-input" class="form-input" placeholder="Type animal or location..." aria-label="Search livestock">
+    </div>
+
+    <div id="listings-container" class="listing-cards" role="list"></div>
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <span class="empty-state-icon" aria-hidden="true">🐄</span>
+      <p>No animals for sale at the moment. Check back later.</p>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="marketplace.html" class="nav-item active" aria-current="page">
+      <span class="nav-item-icon">🛒</span>
+      <span>Marketplace</span>
+    </a>
+    <a href="marketplace.html" class="nav-item">
+      <span class="nav-item-icon">🔍</span>
+      <span>Search</span>
+    </a>
+    <a href="../prices.html" class="nav-item">
+      <span class="nav-item-icon">💰</span>
+      <span>Prices</span>
+    </a>
+    <a href="../profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/livestock.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth('buyer')) return;
+
+      const container = document.getElementById('listings-container');
+      const emptyState = document.getElementById('empty-state');
+      const searchInput = document.getElementById('search-input');
+      const LC = window.LivestockConnect;
+      const Livestock = window.LivestockConnectLivestock;
+
+      const renderListings = (list) => {
+        container.innerHTML = '';
+        container.style.display = list.length ? 'flex' : 'none';
+        emptyState.style.display = list.length ? 'none' : 'block';
+
+        list.forEach(function (item) {
+          const farmer = Livestock.getFarmerById(item.userId);
+          const farmerName = farmer ? farmer.fullName : 'Farmer';
+          const priceNum = parseInt(item.price, 10);
+          const priceStr = isNaN(priceNum) ? item.price : LC.formatUGX(priceNum);
+
+          const card = document.createElement('div');
+          card.className = 'listing-card';
+          card.setAttribute('role', 'listitem');
+          card.innerHTML =
+            '<div class="listing-card-header">' +
+              '<span class="listing-card-type">' + (item.animalType || '—') + '</span>' +
+              '<span class="listing-card-price">' + priceStr + '</span>' +
+            '</div>' +
+            '<div class="listing-card-meta">Weight: ' + (item.weight || '—') + ' kg</div>' +
+            '<div class="listing-card-meta">Location: ' + (item.location || '—') + '</div>' +
+            '<div class="listing-card-meta">Seller: ' + farmerName + '</div>' +
+            '<div class="listing-card-actions">' +
+              '<a href="animal-details.html?id=' + encodeURIComponent(item.id) + '" class="btn btn-primary">View Details</a>' +
+            '</div>';
+          container.appendChild(card);
+        });
+      };
+
+      let allListings = Livestock.getAllListings();
+      renderListings(allListings);
+
+      searchInput.addEventListener('input', function () {
+        const term = searchInput.value.trim();
+        const filtered = Livestock.filterListings(allListings, term);
+        renderListings(filtered);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Animal details - Livestock Connect">
+  <title>Animal Details - Livestock Connect</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>Animal Details</h1>
+      <p class="text-muted" id="subtitle">Full information about this animal.</p>
+    </header>
+
+    <div id="details-container"></div>
+    <div id="not-found" class="empty-state" style="display: none;">
+      <span class="empty-state-icon" aria-hidden="true">🐄</span>
+      <p>This listing was not found.</p>
+      <a href="marketplace.html" class="btn btn-primary btn-block mt-2">Back to Marketplace</a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="marketplace.html" class="nav-item">
+      <span class="nav-item-icon">🛒</span>
+      <span>Marketplace</span>
+    </a>
+    <a href="marketplace.html" class="nav-item">
+      <span class="nav-item-icon">🔍</span>
+      <span>Search</span>
+    </a>
+    <a href="../prices.html" class="nav-item">
+      <span class="nav-item-icon">💰</span>
+      <span>Prices</span>
+    </a>
+    <a href="../profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/livestock.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth('buyer')) return;
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const container = document.getElementById('details-container');
+      const notFound = document.getElementById('not-found');
+
+      if (!id) {
+        container.style.display = 'none';
+        notFound.style.display = 'block';
+        return;
+      }
+
+      const Livestock = window.LivestockConnectLivestock;
+      const LC = window.LivestockConnect;
+      const listing = Livestock.getListingById(id);
+
+      if (!listing) {
+        container.style.display = 'none';
+        notFound.style.display = 'block';
+        return;
+      }
+
+      const farmer = Livestock.getFarmerById(listing.userId);
+      const farmerName = farmer ? farmer.fullName : 'Farmer';
+      const priceNum = parseInt(listing.price, 10);
+      const priceStr = isNaN(priceNum) ? listing.price : LC.formatUGX(priceNum);
+      const healthClass = LC.getHealthBadgeClass(listing.healthStatus);
+
+      container.innerHTML =
+        '<div class="detail-list">' +
+          '<div class="detail-row"><span class="detail-label">Animal type</span><span class="detail-value">' + (listing.animalType || '—') + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">Age</span><span class="detail-value">' + (listing.age || '—') + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">Weight</span><span class="detail-value">' + (listing.weight || '—') + ' kg</span></div>' +
+          '<div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">' + priceStr + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">Health status</span><span class="detail-value ' + healthClass + '">' + (listing.healthStatus || '—') + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value">' + (listing.location || '—') + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">Farmer</span><span class="detail-value">' + farmerName + '</span></div>' +
+          (listing.description ? '<div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">' + listing.description + '</span></div>' : '') +
+        '</div>' +
+        '<a href="contact-farmer.html?userId=' + encodeURIComponent(listing.userId) + '" class="btn btn-primary btn-block">Contact Farmer</a>';
+    })();
+  </script>
+</body>
+</html>

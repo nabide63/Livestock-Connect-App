@@ -11,12 +11,33 @@
   <div class="app-container">
     <header class="page-header">
       <h1>Create Account</h1>
-      <p class="text-muted">Join Livestock Connect to manage your animals and see market prices.</p>
+      <p class="text-muted">Join as a farmer (seller) or buyer. Choose your role below.</p>
     </header>
 
     <div id="register-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
 
     <form id="register-form" novalidate>
+      <div class="form-group">
+        <label class="form-label">Select Role</label>
+        <div class="role-options" role="group" aria-label="Choose your role">
+          <label class="role-option" id="role-farmer-wrap">
+            <input type="radio" name="role" value="farmer" id="role-farmer" required aria-required="true">
+            <span class="role-option-icon" aria-hidden="true">🐄</span>
+            <div>
+              <strong>Farmer (I sell animals)</strong>
+              <span class="text-muted" style="display: block; font-size: 0.85rem;">Post livestock for sale and manage listings.</span>
+            </div>
+          </label>
+          <label class="role-option" id="role-buyer-wrap">
+            <input type="radio" name="role" value="buyer" id="role-buyer">
+            <span class="role-option-icon" aria-hidden="true">🛒</span>
+            <div>
+              <strong>Buyer (I want to buy animals)</strong>
+              <span class="text-muted" style="display: block; font-size: 0.85rem;">Browse listings and contact farmers.</span>
+            </div>
+          </label>
+        </div>
+      </div>
       <div class="form-group">
         <label class="form-label" for="fullName">Full Name</label>
         <input type="text" id="fullName" class="form-input" name="fullName" placeholder="Your full name" required autocomplete="name" aria-required="true">
@@ -26,18 +47,8 @@
         <input type="tel" id="phone" class="form-input" name="phone" placeholder="07XXXXXXXX" required autocomplete="tel" aria-required="true">
       </div>
       <div class="form-group">
-        <label class="form-label" for="farmLocation">Farm Location</label>
-        <input type="text" id="farmLocation" class="form-input" name="farmLocation" placeholder="Village or district" required autocomplete="street-address" aria-required="true">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="livestockType">Livestock Type</label>
-        <select id="livestockType" class="form-select" name="livestockType" required aria-required="true">
-          <option value="">Choose type</option>
-          <option value="Cattle">Cattle</option>
-          <option value="Goats">Goats</option>
-          <option value="Sheep">Sheep</option>
-          <option value="Poultry">Poultry</option>
-        </select>
+        <label class="form-label" for="location">Location</label>
+        <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required autocomplete="street-address" aria-required="true">
       </div>
       <div class="form-group">
         <label class="form-label" for="password">Password</label>
@@ -50,16 +61,20 @@
       <button type="submit" class="btn btn-primary btn-block">Create Account</button>
     </form>
 
-    <p class="text-muted mt-2" style="text-align: center;">
+    <p class="text-muted mt-2 text-center">
       Already have an account? <a href="login.html">Login</a>
     </p>
   </div>
   <script src="js/app.js"></script>
-  <script src="data/mock-data.js"></script>
+  <script src="js/auth.js"></script>
   <script>
     (function () {
       const form = document.getElementById('register-form');
       const alertEl = document.getElementById('register-alert');
+      const roleFarmer = document.getElementById('role-farmer');
+      const roleBuyer = document.getElementById('role-buyer');
+      const wrapFarmer = document.getElementById('role-farmer-wrap');
+      const wrapBuyer = document.getElementById('role-buyer-wrap');
 
       const showAlert = (message, type) => {
         alertEl.textContent = message;
@@ -67,29 +82,35 @@
         alertEl.style.display = 'block';
       };
 
-      const hideAlert = () => {
-        alertEl.style.display = 'none';
-      };
+      const hideAlert = () => { alertEl.style.display = 'none'; };
+
+      roleFarmer.addEventListener('change', function () {
+        wrapFarmer.classList.toggle('selected', roleFarmer.checked);
+        wrapBuyer.classList.toggle('selected', roleBuyer.checked);
+      });
+      roleBuyer.addEventListener('change', function () {
+        wrapFarmer.classList.toggle('selected', roleFarmer.checked);
+        wrapBuyer.classList.toggle('selected', roleBuyer.checked);
+      });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         hideAlert();
 
+        const roleEl = form.querySelector('input[name="role"]:checked');
         const data = {
           fullName: form.fullName.value.trim(),
           phone: form.phone.value.trim(),
-          farmLocation: form.farmLocation.value.trim(),
-          livestockType: form.livestockType.value,
+          location: form.location.value.trim(),
+          role: roleEl ? roleEl.value : '',
           password: form.password.value,
           confirmPassword: form.confirmPassword.value
         };
 
-        const result = window.LivestockConnect.registerUser(data);
+        const result = window.LivestockConnectAuth.registerUser(data);
         if (result.success) {
           showAlert(result.message, 'success');
-          setTimeout(function () {
-            window.location.href = 'login.html';
-          }, 1500);
+          setTimeout(function () { window.location.href = 'login.html'; }, 1500);
         } else {
           showAlert(result.message, 'error');
         }

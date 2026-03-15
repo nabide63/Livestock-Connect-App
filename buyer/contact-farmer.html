@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Contact farmer - Livestock Connect">
+  <title>Contact Farmer - Livestock Connect</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>Contact Farmer</h1>
+      <p class="text-muted">Call or visit to buy the animal.</p>
+    </header>
+
+    <div id="contact-container"></div>
+    <div id="not-found" class="empty-state" style="display: none;">
+      <span class="empty-state-icon" aria-hidden="true">👤</span>
+      <p>Farmer details not found.</p>
+      <a href="marketplace.html" class="btn btn-primary btn-block mt-2">Back to Marketplace</a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="marketplace.html" class="nav-item">
+      <span class="nav-item-icon">🛒</span>
+      <span>Marketplace</span>
+    </a>
+    <a href="marketplace.html" class="nav-item">
+      <span class="nav-item-icon">🔍</span>
+      <span>Search</span>
+    </a>
+    <a href="../prices.html" class="nav-item">
+      <span class="nav-item-icon">💰</span>
+      <span>Prices</span>
+    </a>
+    <a href="../profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/livestock.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth('buyer')) return;
+
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('userId');
+      const container = document.getElementById('contact-container');
+      const notFound = document.getElementById('not-found');
+
+      if (!userId) {
+        container.style.display = 'none';
+        notFound.style.display = 'block';
+        return;
+      }
+
+      const Livestock = window.LivestockConnectLivestock;
+      const farmer = Livestock.getFarmerById(userId);
+
+      if (!farmer) {
+        container.style.display = 'none';
+        notFound.style.display = 'block';
+        return;
+      }
+
+      const telLink = 'tel:' + (farmer.phone || '').replace(/\s/g, '');
+      container.innerHTML =
+        '<div class="contact-card">' +
+          '<h2>' + (farmer.fullName || 'Farmer') + '</h2>' +
+          '<p class="text-muted">Location: ' + (farmer.location || '—') + '</p>' +
+          '<p class="phone" id="farmer-phone">' + (farmer.phone || '—') + '</p>' +
+          '<a href="' + telLink + '" class="btn btn-primary btn-block" aria-label="Call farmer">Call Farmer</a>' +
+        '</div>' +
+        '<p class="text-muted text-center">For this prototype, use the phone number above to contact the farmer. In a full app, you could send a message or request.</p>';
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="My livestock listings - Livestock Connect">
+  <title>My Listings - Livestock Connect</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="page-header">
+      <h1>My Listings</h1>
+      <p class="text-muted">Animals you have posted for sale. Edit or delete below.</p>
+    </header>
+
+    <div id="listings-container" class="listing-cards" role="list"></div>
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <span class="empty-state-icon" aria-hidden="true">🐄</span>
+      <p>You have not posted any animals yet.</p>
+      <a href="add-animal.html" class="btn btn-primary btn-block mt-2">Add Animal</a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <a href="../dashboard.html" class="nav-item">
+      <span class="nav-item-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="add-animal.html" class="nav-item">
+      <span class="nav-item-icon">➕</span>
+      <span>Add Animal</span>
+    </a>
+    <a href="my-listings.html" class="nav-item active" aria-current="page">
+      <span class="nav-item-icon">📋</span>
+      <span>My Listings</span>
+    </a>
+    <a href="../health.html" class="nav-item">
+      <span class="nav-item-icon">💚</span>
+      <span>Health Tips</span>
+    </a>
+    <a href="../profile.html" class="nav-item">
+      <span class="nav-item-icon">👤</span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/livestock.js"></script>
+  <script>
+    (function () {
+      if (!window.LivestockConnect.requireAuth('farmer')) return;
+
+      const container = document.getElementById('listings-container');
+      const emptyState = document.getElementById('empty-state');
+      const LC = window.LivestockConnect;
+      const Livestock = window.LivestockConnectLivestock;
+
+      const list = Livestock.getMyListings();
+
+      if (list.length === 0) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      list.forEach(function (item) {
+        const card = document.createElement('div');
+        card.className = 'listing-card';
+        card.setAttribute('role', 'listitem');
+        const priceNum = parseInt(item.price, 10);
+        const priceStr = isNaN(priceNum) ? item.price : LC.formatUGX(priceNum);
+        card.innerHTML =
+          '<div class="listing-card-header">' +
+            '<span class="listing-card-type">' + (item.animalType || '—') + '</span>' +
+            '<span class="listing-card-price">' + priceStr + '</span>' +
+          '</div>' +
+          '<div class="listing-card-meta">Weight: ' + (item.weight || '—') + ' kg</div>' +
+          '<div class="listing-card-meta">Location: ' + (item.location || '—') + '</div>' +
+          '<div class="listing-card-actions">' +
+            '<a href="edit-animal.html?id=' + encodeURIComponent(item.id) + '" class="btn btn-outline">Edit</a>' +
+            '<button type="button" class="btn btn-danger" data-id="' + item.id + '" aria-label="Delete listing">Delete</button>' +
+          '</div>';
+        container.appendChild(card);
+      });
+
+      container.addEventListener('click', function (e) {
+        const btn = e.target.closest('button[data-id]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        if (!confirm('Remove this listing?')) return;
+        const result = Livestock.deleteListing(id);
+        LC.showToast(result.message, result.success ? 'success' : 'error');
+        if (result.success) window.location.reload();
+      });
+    })();
+  </script>
+</body>
+</html>
