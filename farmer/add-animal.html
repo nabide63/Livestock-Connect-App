@@ -50,12 +50,12 @@
       </div>
       <div class="form-group form-group-photo">
         <label class="form-label" for="photo">Photo of livestock</label>
-        <input type="file" id="photo" class="form-input form-input-file" name="photo" accept="image/*" aria-label="Upload photo of the animal">
-        <span class="text-muted" style="font-size: 0.85rem; display: block; margin-top: 4px;">Optional. Choose an image to preview below; it will be uploaded when you tap Post Animal.</span>
-        <div id="photo-preview-wrap" class="photo-preview-wrap" style="display: none;">
-          <span class="form-label" style="margin-bottom: 6px;">Preview before upload</span>
+        <p class="form-hint text-muted" id="photo-hint">Optional. Choose an image to preview it here before posting. Buyers will see this photo.</p>
+        <input type="file" id="photo" class="form-input form-input-file" name="photo" accept="image/*" aria-describedby="photo-hint" aria-label="Upload photo of the animal">
+        <div id="photo-preview-wrap" class="photo-preview-wrap" style="display: none;" role="region" aria-label="Image preview">
+          <p class="photo-preview-label">Preview before upload</p>
           <div id="photo-preview" class="photo-preview" aria-hidden="true"></div>
-          <button type="button" id="photo-remove" class="btn btn-outline mt-1" style="font-size: 0.875rem;">Remove photo</button>
+          <button type="button" id="photo-remove" class="btn-photo-remove text-muted" aria-label="Remove photo and choose another">Remove photo</button>
         </div>
       </div>
       <div class="form-group">
@@ -156,32 +156,28 @@
 
       function showPreview(dataUrl) {
         photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview of livestock photo" class="photo-preview-img">';
-        photoPreviewWrap.style.display = 'block';
         photoPreview.setAttribute('data-url', dataUrl);
+        photoPreviewWrap.style.display = 'block';
       }
 
       function hidePreview() {
         photoPreview.innerHTML = '';
-        photoPreviewWrap.style.display = 'none';
         photoPreview.removeAttribute('data-url');
+        photoPreviewWrap.style.display = 'none';
         photoInput.value = '';
       }
 
       photoInput.addEventListener('change', function () {
         const file = this.files[0];
-        photoPreview.innerHTML = '';
-        photoPreviewWrap.style.display = 'none';
-        photoPreview.removeAttribute('data-url');
+        hidePreview();
         if (file && file.type.indexOf('image/') === 0) {
           resizeImageToDataUrl(file, 600, 0.75, showPreview);
         }
       });
 
-      if (photoRemoveBtn) {
-        photoRemoveBtn.addEventListener('click', function () {
-          hidePreview();
-        });
-      }
+      photoRemoveBtn.addEventListener('click', function () {
+        hidePreview();
+      });
 
       function submitRecord(record) {
         const result = window.LivestockConnectLivestock.addListing(record);

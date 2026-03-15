@@ -594,35 +594,58 @@ body.no-nav {
 }
 
 /* ========== Photo upload (add/edit animal) ========== */
-.photo-preview-wrap {
-  margin-top: 14px;
-  padding: 12px;
-  background: var(--primary-bg);
-  border-radius: var(--radius-sm);
-  border: 2px solid var(--primary-light);
+.form-hint {
+  font-size: 0.85rem;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
 }
 
-.photo-preview-wrap .form-label {
-  display: block;
+.photo-preview-wrap {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.photo-preview-label {
   font-size: 0.875rem;
+  font-weight: 600;
   color: var(--text-muted);
+  margin: 0 0 10px 0;
 }
 
 .photo-preview {
-  margin-top: 8px;
-  margin-bottom: 0;
+  margin-top: 0;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 2px solid var(--border);
   max-width: 100%;
-  background: var(--bg-card);
+  background: var(--primary-bg);
 }
 
 .photo-preview-img {
   width: 100%;
   max-height: 220px;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+}
+
+.btn-photo-remove {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 0;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-photo-remove:hover,
+.btn-photo-remove:focus {
+  color: var(--primary);
+  outline: none;
 }
 
 .form-input-file {
