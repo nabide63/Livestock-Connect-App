@@ -62,7 +62,21 @@ supabase db reset   # applies migrations and seed
 - **Profiles**: `supabase.from('profiles').select()`, `.insert()`, `.update()` (with RLS).
 - **Listings**: `supabase.from('listings').select()`, `.insert()` (as farmer), `.update()` / `.delete()` (own rows only).
 
-Environment variables (or config):
+---
+
+## Cloudinary + Supabase (livestock photos)
+
+Images are uploaded to **Cloudinary** (cloud name: `dprfszxkv`). The app then stores the returned URL in Supabase:
+
+1. **Frontend**: User selects a photo → upload to Cloudinary (unsigned preset) → get `secure_url`.
+2. **Supabase**: When inserting/updating a listing, set `image_url` = Cloudinary `secure_url`.
+3. **Display**: Use `listings.image_url` as the `src` for the livestock photo.
+
+So **Cloudinary** = storage and delivery of images; **Supabase** = storage of the listing row and its `image_url`. No direct link between the two services—the app connects them by saving the Cloudinary URL into the Supabase `listings.image_url` column.
+
+---
+
+## Environment variables (or config)
 
 - `VITE_SUPABASE_URL` or `SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY` or `SUPABASE_ANON_KEY`

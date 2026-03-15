@@ -89,6 +89,8 @@
   <script src="../js/auth.js"></script>
   <script src="../js/livestock.js"></script>
   <script src="../data/mock-data.js"></script>
+  <script src="../data/config.js"></script>
+  <script src="../js/cloudinary.js"></script>
   <script>
     (function () {
       if (!window.LivestockConnect.requireAuth('farmer')) return;
@@ -158,6 +160,20 @@
         }
       });
 
+      function submitRecord(record) {
+        const result = window.LivestockConnectLivestock.addListing(record);
+        if (result.success) {
+          window.LivestockConnect.showToast(result.message, 'success');
+          form.reset();
+          photoPreview.innerHTML = '';
+          photoPreview.style.display = 'none';
+          photoPreview.removeAttribute('data-url');
+          if (user && user.location) document.getElementById('location').value = user.location;
+        } else {
+          showAlert(result.message, 'error');
+        }
+      }
+
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         alertEl.style.display = 'none';
@@ -171,19 +187,40 @@
           healthStatus: form.healthStatus.value,
           location: form.location.value.trim(),
           description: form.description.value.trim(),
-          imageData: photoPreview.getAttribute('data-url') || null
+          imageData: null
         };
 
-        const result = window.LivestockConnectLivestock.addListing(record);
-        if (result.success) {
-          window.LivestockConnect.showToast(result.message, 'success');
-          form.reset();
-          photoPreview.innerHTML = '';
-          photoPreview.style.display = 'none';
-          photoPreview.removeAttribute('data-url');
-          if (user && user.location) document.getElementById('location').value = user.location;
+        const file = photoInput.files[0];
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (file && file.type.indexOf('image/') === 0) {
+          const Cloudinary = window.LivestockConnectCloudinary;
+          if (Cloudinary && Cloudinary.isCloudinaryConfigured && Cloudinary.isCloudinaryConfigured()) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading…';
+            Cloudinary.uploadImage(file)
+              .then(function (url) {
+                record.imageData = url;
+                submitRecord(record);
+              })
+              .catch(function () {
+                resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
+                  record.imageData = dataUrl;
+                  submitRecord(record);
+                });
+              })
+              .finally(function () {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post Animal';
+              });
+            return;
+          }
+          resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
+            record.imageData = dataUrl;
+            submitRecord(record);
+          });
         } else {
-          showAlert(result.message, 'error');
+          submitRecord(record);
         }
       });
     })();

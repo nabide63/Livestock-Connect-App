@@ -22,6 +22,7 @@ comment on table public.listings is 'Livestock listings for sale; only farmers (
 comment on column public.listings.user_id is 'Farmer who posted (references profiles.id).';
 comment on column public.listings.animal_type is 'Cow, Goat, Sheep, Poultry.';
 comment on column public.listings.price is 'Price in UGX as text for flexibility.';
+comment on column public.listings.image_url is 'URL of livestock photo (e.g. Cloudinary secure_url).';
 
 create index if not exists idx_listings_user_id on public.listings(user_id);
 create index if not exists idx_listings_animal_type on public.listings(animal_type);

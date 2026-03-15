@@ -92,6 +92,8 @@
   <script src="../js/auth.js"></script>
   <script src="../js/livestock.js"></script>
   <script src="../data/mock-data.js"></script>
+  <script src="../data/config.js"></script>
+  <script src="../js/cloudinary.js"></script>
   <script>
     (function () {
       if (!window.LivestockConnect.requireAuth('farmer')) return;
@@ -189,12 +191,8 @@
         alertEl.style.display = 'block';
       };
 
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        alertEl.style.display = 'none';
-
+      function doUpdate(imageDataValue) {
         const priceVal = form.price.value.trim().replace(/\s/g, '');
-        const newImageData = photoPreview.getAttribute('data-url');
         const result = Livestock.updateListing(id, {
           animalType: form.animalType.value,
           age: form.age.value.trim(),
@@ -203,14 +201,57 @@
           healthStatus: form.healthStatus.value,
           location: form.location.value.trim(),
           description: form.description.value.trim(),
-          imageData: newImageData !== null && newImageData !== '' ? newImageData : (listing.imageData || null)
+          imageData: imageDataValue !== null && imageDataValue !== '' ? imageDataValue : (listing.imageData || null)
         });
-
         if (result.success) {
           window.LivestockConnect.showToast(result.message, 'success');
           setTimeout(function () { window.location.href = 'my-listings.html'; }, 800);
         } else {
           showAlert(result.message, 'error');
+        }
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        alertEl.style.display = 'none';
+
+        const file = photoInput.files[0];
+        const newDataUrl = photoPreview.getAttribute('data-url');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (file && file.type.indexOf('image/') === 0) {
+          const Cloudinary = window.LivestockConnectCloudinary;
+          if (Cloudinary && Cloudinary.isCloudinaryConfigured && Cloudinary.isCloudinaryConfigured()) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading…';
+            Cloudinary.uploadImage(file)
+              .then(function (url) {
+                doUpdate(url);
+              })
+              .catch(function () {
+                if (newDataUrl) {
+                  doUpdate(newDataUrl);
+                } else {
+                  resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
+                    doUpdate(dataUrl);
+                  });
+                }
+              })
+              .finally(function () {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Changes';
+              });
+            return;
+          }
+          if (newDataUrl) {
+            doUpdate(newDataUrl);
+          } else {
+            resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
+              doUpdate(dataUrl);
+            });
+          }
+        } else {
+          doUpdate(newDataUrl || listing.imageData || null);
         }
       });
     })();

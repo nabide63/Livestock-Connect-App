@@ -24,3 +24,6 @@ Thumbs.db
 
 # Supabase
 .supabase/
+
+# Cloudinary (copy from data/config.example.js and fill in)
+data/config.js
