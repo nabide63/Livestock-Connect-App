@@ -12,56 +12,64 @@
 <body class="no-nav">
   <div class="app-container">
     <header class="page-header">
-      <a href="#" class="back-link" aria-label="Go back to previous page" onclick="event.preventDefault(); history.back(); return false;">← Back</a>
+      <a href="#" class="back-link" id="register-page-back" aria-label="Go back">← Back</a>
       <h1>Create Account</h1>
-      <p class="text-muted">Join as a farmer (seller) or buyer. Choose your role below.</p>
+      <p class="text-muted" id="register-subtitle">Join as a farmer (seller) or buyer. Choose your role below.</p>
     </header>
 
     <div id="register-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
 
     <form id="register-form" novalidate>
-      <div class="form-group">
-        <label class="form-label">Select Role</label>
-        <div class="role-options" role="group" aria-label="Choose your role">
-          <label class="role-option" id="role-farmer-wrap">
-            <input type="radio" name="role" value="farmer" id="role-farmer" required aria-required="true">
-            <span class="role-option-icon" aria-hidden="true">🐄</span>
-            <div>
-              <strong>Farmer (I sell animals)</strong>
-              <span class="text-muted" style="display: block; font-size: 0.85rem;">Post livestock for sale and manage listings.</span>
-            </div>
-          </label>
-          <label class="role-option" id="role-buyer-wrap">
-            <input type="radio" name="role" value="buyer" id="role-buyer">
-            <span class="role-option-icon" aria-hidden="true">🛒</span>
-            <div>
-              <strong>Buyer (I want to buy animals)</strong>
-              <span class="text-muted" style="display: block; font-size: 0.85rem;">Browse listings and contact farmers.</span>
-            </div>
-          </label>
+      <div id="register-step-role" class="register-flow-pane">
+        <div class="form-group">
+          <label class="form-label">Select Role</label>
+          <div class="role-options" role="group" aria-label="Choose your role">
+            <label class="role-option" id="role-farmer-wrap">
+              <input type="radio" name="role" value="farmer" id="role-farmer" aria-required="true">
+              <span class="role-option-icon" aria-hidden="true">🐄</span>
+              <div>
+                <strong>Farmer (I sell animals)</strong>
+                <span class="text-muted" style="display: block; font-size: 0.85rem;">Post livestock for sale and manage listings.</span>
+              </div>
+            </label>
+            <label class="role-option" id="role-buyer-wrap">
+              <input type="radio" name="role" value="buyer" id="role-buyer">
+              <span class="role-option-icon" aria-hidden="true">🛒</span>
+              <div>
+                <strong>Buyer (I want to buy animals)</strong>
+                <span class="text-muted" style="display: block; font-size: 0.85rem;">Browse listings and contact farmers.</span>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="fullName">Full Name</label>
-        <input type="text" id="fullName" class="form-input" name="fullName" placeholder="Your full name" required autocomplete="name" aria-required="true">
+      <div id="register-step-details" class="register-flow-pane" hidden>
+        <div class="form-group register-back-step-wrap">
+          <button type="button" class="register-back-step" id="register-change-role" aria-label="Go back to role selection">← Change role</button>
+        </div>
+        <p class="register-role-summary text-muted" id="register-role-summary" aria-live="polite"></p>
+        <div class="form-group">
+          <label class="form-label" for="fullName">Full Name</label>
+          <input type="text" id="fullName" class="form-input" name="fullName" placeholder="Your full name" required autocomplete="name" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone Number</label>
+          <input type="tel" id="phone" class="form-input" name="phone" placeholder="07XXXXXXXX" required autocomplete="tel" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="location">Location</label>
+          <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required autocomplete="street-address" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="form-input" name="password" placeholder="At least 4 characters" required minlength="4" autocomplete="new-password" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" class="form-input" name="confirmPassword" placeholder="Same as above" required autocomplete="new-password" aria-required="true">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
       </div>
-      <div class="form-group">
-        <label class="form-label" for="phone">Phone Number</label>
-        <input type="tel" id="phone" class="form-input" name="phone" placeholder="07XXXXXXXX" required autocomplete="tel" aria-required="true">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="location">Location</label>
-        <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required autocomplete="street-address" aria-required="true">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <input type="password" id="password" class="form-input" name="password" placeholder="At least 4 characters" required minlength="4" autocomplete="new-password" aria-required="true">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="confirmPassword">Confirm Password</label>
-        <input type="password" id="confirmPassword" class="form-input" name="confirmPassword" placeholder="Same as above" required autocomplete="new-password" aria-required="true">
-      </div>
-      <button type="submit" class="btn btn-primary btn-block">Create Account</button>
     </form>
 
     <p class="text-muted mt-2 text-center">
@@ -80,6 +88,15 @@
       const roleBuyer = document.getElementById('role-buyer');
       const wrapFarmer = document.getElementById('role-farmer-wrap');
       const wrapBuyer = document.getElementById('role-buyer-wrap');
+      const stepRole = document.getElementById('register-step-role');
+      const stepDetails = document.getElementById('register-step-details');
+      const subtitleEl = document.getElementById('register-subtitle');
+      const roleSummaryEl = document.getElementById('register-role-summary');
+      const changeRoleBtn = document.getElementById('register-change-role');
+      const pageBack = document.getElementById('register-page-back');
+
+      const subtitleRoleStep = 'Join as a farmer (seller) or buyer. Choose your role below.';
+      const subtitleDetailsStep = 'Fill in your details to finish creating your account.';
 
       const showAlert = (message, type) => {
         alertEl.textContent = message;
@@ -89,13 +106,62 @@
 
       const hideAlert = () => { alertEl.style.display = 'none'; };
 
-      roleFarmer.addEventListener('change', function () {
+      const syncRoleCardStyles = () => {
         wrapFarmer.classList.toggle('selected', roleFarmer.checked);
         wrapBuyer.classList.toggle('selected', roleBuyer.checked);
-      });
-      roleBuyer.addEventListener('change', function () {
-        wrapFarmer.classList.toggle('selected', roleFarmer.checked);
-        wrapBuyer.classList.toggle('selected', roleBuyer.checked);
+      };
+
+      const showDetailsStep = () => {
+        stepRole.hidden = true;
+        stepDetails.hidden = false;
+        subtitleEl.textContent = subtitleDetailsStep;
+        if (roleFarmer.checked) {
+          roleSummaryEl.textContent = 'Signing up as: Farmer (seller)';
+        } else {
+          roleSummaryEl.textContent = 'Signing up as: Buyer';
+        }
+        window.scrollTo(0, 0);
+        document.getElementById('fullName').focus();
+      };
+
+      const showRoleStep = () => {
+        hideAlert();
+        stepDetails.hidden = true;
+        stepRole.hidden = false;
+        subtitleEl.textContent = subtitleRoleStep;
+        roleSummaryEl.textContent = '';
+        window.scrollTo(0, 0);
+        if (roleFarmer.checked) {
+          roleFarmer.focus();
+        } else if (roleBuyer.checked) {
+          roleBuyer.focus();
+        }
+      };
+
+      const handleRoleChange = () => {
+        syncRoleCardStyles();
+        if (roleFarmer.checked || roleBuyer.checked) {
+          showDetailsStep();
+        }
+      };
+
+      roleFarmer.addEventListener('change', handleRoleChange);
+      roleBuyer.addEventListener('change', handleRoleChange);
+
+      changeRoleBtn.addEventListener('click', showRoleStep);
+
+      pageBack.addEventListener('click', function (e) {
+        if (!stepDetails.hidden) {
+          e.preventDefault();
+          showRoleStep();
+          return;
+        }
+        e.preventDefault();
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = 'login.html';
+        }
       });
 
       form.addEventListener('submit', function (e) {

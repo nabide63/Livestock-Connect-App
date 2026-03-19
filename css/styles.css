@@ -395,6 +395,44 @@ body.no-nav {
   font-size: 0.8125rem;
 }
 
+.register-back-step-wrap {
+  margin-bottom: 4px;
+}
+
+.register-back-step {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-min);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.register-back-step:hover,
+.register-back-step:focus {
+  color: var(--primary-dark);
+}
+
+.register-back-step:focus {
+  outline: none;
+}
+
+.register-back-step:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 3px;
+}
+
+.register-role-summary {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+}
+
 /* ========== Bottom navigation ========== */
 .bottom-nav {
   position: fixed;
