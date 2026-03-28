@@ -32,21 +32,21 @@ const MOCK_DATA = {
 
   /**
    * Mock users (farmers and buyers). Same shape as real API / register.
-   * Password for all mock users: 1234
+   * Password for all mock users: 123456
    */
   mockUsers: [
-    { id: 'mock-farmer-1', fullName: 'James Okello', phone: '0772123456', location: 'Gulu', role: 'farmer', password: '1234', createdAt: '2025-01-10T08:00:00.000Z' },
-    { id: 'mock-farmer-2', fullName: 'Mary Akello', phone: '0783234567', location: 'Lira', role: 'farmer', password: '1234', createdAt: '2025-01-12T09:00:00.000Z' },
-    { id: 'mock-farmer-3', fullName: 'Peter Odongo', phone: '0754345678', location: 'Mbarara', role: 'farmer', password: '1234', createdAt: '2025-01-15T10:00:00.000Z' },
-    { id: 'mock-farmer-4', fullName: 'Grace Atim', phone: '0765456789', location: 'Kampala', role: 'farmer', password: '1234', createdAt: '2025-01-18T11:00:00.000Z' },
-    { id: 'mock-farmer-5', fullName: 'Joseph Mugisha', phone: '0776567890', location: 'Mbale', role: 'farmer', password: '1234', createdAt: '2025-01-20T12:00:00.000Z' },
-    { id: 'mock-farmer-6', fullName: 'Sarah Nansubuga', phone: '0787678901', location: 'Jinja', role: 'farmer', password: '1234', createdAt: '2025-01-22T13:00:00.000Z' },
-    { id: 'mock-farmer-7', fullName: 'David Kato', phone: '0758789012', location: 'Masaka', role: 'farmer', password: '1234', createdAt: '2025-01-25T14:00:00.000Z' },
-    { id: 'mock-farmer-8', fullName: 'Alice Namukasa', phone: '0769890123', location: 'Fort Portal', role: 'farmer', password: '1234', createdAt: '2025-01-28T15:00:00.000Z' },
-    { id: 'mock-farmer-9', fullName: 'Robert Ssebunya', phone: '0770901234', location: 'Hoima', role: 'farmer', password: '1234', createdAt: '2025-02-01T16:00:00.000Z' },
-    { id: 'mock-farmer-10', fullName: 'Florence Nalwadda', phone: '0781012345', location: 'Soroti', role: 'farmer', password: '1234', createdAt: '2025-02-05T17:00:00.000Z' },
-    { id: 'mock-buyer-1', fullName: 'Buyer John', phone: '0700000001', location: 'Kampala', role: 'buyer', password: '1234', createdAt: '2025-02-10T18:00:00.000Z' },
-    { id: 'mock-buyer-2', fullName: 'Buyer Jane', phone: '0700000002', location: 'Entebbe', role: 'buyer', password: '1234', createdAt: '2025-02-12T19:00:00.000Z' }
+    { id: 'mock-farmer-1', fullName: 'James Okello', phone: '0772123456', location: 'Gulu', role: 'farmer', password: '123456', createdAt: '2025-01-10T08:00:00.000Z' },
+    { id: 'mock-farmer-2', fullName: 'Mary Akello', phone: '0783234567', location: 'Lira', role: 'farmer', password: '123456', createdAt: '2025-01-12T09:00:00.000Z' },
+    { id: 'mock-farmer-3', fullName: 'Peter Odongo', phone: '0754345678', location: 'Mbarara', role: 'farmer', password: '123456', createdAt: '2025-01-15T10:00:00.000Z' },
+    { id: 'mock-farmer-4', fullName: 'Grace Atim', phone: '0765456789', location: 'Kampala', role: 'farmer', password: '123456', createdAt: '2025-01-18T11:00:00.000Z' },
+    { id: 'mock-farmer-5', fullName: 'Joseph Mugisha', phone: '0776567890', location: 'Mbale', role: 'farmer', password: '123456', createdAt: '2025-01-20T12:00:00.000Z' },
+    { id: 'mock-farmer-6', fullName: 'Sarah Nansubuga', phone: '0787678901', location: 'Jinja', role: 'farmer', password: '123456', createdAt: '2025-01-22T13:00:00.000Z' },
+    { id: 'mock-farmer-7', fullName: 'David Kato', phone: '0758789012', location: 'Masaka', role: 'farmer', password: '123456', createdAt: '2025-01-25T14:00:00.000Z' },
+    { id: 'mock-farmer-8', fullName: 'Alice Namukasa', phone: '0769890123', location: 'Fort Portal', role: 'farmer', password: '123456', createdAt: '2025-01-28T15:00:00.000Z' },
+    { id: 'mock-farmer-9', fullName: 'Robert Ssebunya', phone: '0770901234', location: 'Hoima', role: 'farmer', password: '123456', createdAt: '2025-02-01T16:00:00.000Z' },
+    { id: 'mock-farmer-10', fullName: 'Florence Nalwadda', phone: '0781012345', location: 'Soroti', role: 'farmer', password: '123456', createdAt: '2025-02-05T17:00:00.000Z' },
+    { id: 'mock-buyer-1', fullName: 'Buyer John', phone: '0700000001', location: 'Kampala', role: 'buyer', password: '123456', createdAt: '2025-02-10T18:00:00.000Z' },
+    { id: 'mock-buyer-2', fullName: 'Buyer Jane', phone: '0700000002', location: 'Entebbe', role: 'buyer', password: '123456', createdAt: '2025-02-12T19:00:00.000Z' }
   ],
 
   /**

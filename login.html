@@ -5,63 +5,73 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Sign in to Livestock Connect.">
+  <meta name="description" content="Login to Livestock Connect">
   <title>Login - Livestock Connect</title>
   <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="no-nav">
   <div class="app-container">
     <header class="page-header">
-      <a href="#" class="back-link" aria-label="Go back to previous page" onclick="event.preventDefault(); history.back(); return false;">← Back</a>
+      <a href="index.html" class="back-link" aria-label="Go back">← Back</a>
       <h1>Login</h1>
-      <p class="text-muted">Enter your phone and password. We will take you to your dashboard or marketplace.</p>
+      <p class="text-muted">Sign in with your email and password</p>
     </header>
 
     <div id="login-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
 
     <form id="login-form" novalidate>
       <div class="form-group">
-        <label class="form-label" for="phone">Phone Number</label>
-        <input type="tel" id="phone" class="form-input" name="phone" placeholder="07XXXXXXXX" required autocomplete="tel" aria-required="true">
+        <label class="form-label" for="login-email">Email Address</label>
+        <input type="email" id="login-email" class="form-input" placeholder="your@email.com" required autocomplete="email">
       </div>
       <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <input type="password" id="password" class="form-input" name="password" placeholder="Your password" required autocomplete="current-password" aria-required="true">
+        <label class="form-label" for="login-password">Password</label>
+        <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
       </div>
       <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
 
-    <p class="text-muted mt-2 text-center">
-      No account? <a href="register.html">Register</a>
+    <p class="text-muted mt-3 text-center">
+      Don't have an account? <a href="register.html">Create Account</a>
     </p>
   </div>
+
+  <!-- Scripts -->
   <script src="js/app.js"></script>
-  <script src="data/mock-data.js"></script>
-  <script src="data/seed.js"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/auth.js"></script>
   <script>
     (function () {
       const form = document.getElementById('login-form');
       const alertEl = document.getElementById('login-alert');
 
-      const showAlert = (message, type) => {
+      const showAlert = (message, type = 'success') => {
         alertEl.textContent = message;
-        alertEl.className = 'alert alert-' + (type === 'error' ? 'error' : 'success');
+        alertEl.className = `alert alert-${type}`;
         alertEl.style.display = 'block';
+        setTimeout(() => alertEl.style.display = 'none', 4000);
       };
 
-      form.addEventListener('submit', function (e) {
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        alertEl.style.display = 'none';
 
-        const phone = form.phone.value.trim();
-        const password = form.password.value;
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
 
-        const result = window.LivestockConnectAuth.loginUser(phone, password);
+        const result = await window.LivestockConnectAuth.loginUser(email, password);
+
         if (result.success) {
-          showAlert(result.message, 'success');
-          const redirect = window.LivestockConnectAuth.getRedirectAfterLogin(result.user);
-          setTimeout(function () { window.location.href = redirect; }, 800);
+          showAlert('Login successful! Redirecting...', 'success');
+
+          const user = result.user || await window.LivestockConnect.getCurrentUser();
+          const redirectUrl = user && user.role === 'farmer' 
+            ? 'dashboard.html' 
+            : 'buyer/marketplace.html';   // Change if your buyer page has a different name
+
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1200);
         } else {
           showAlert(result.message, 'error');
         }

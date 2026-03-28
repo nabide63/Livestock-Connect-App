@@ -1,93 +1,75 @@
 /**
- * Livestock Connect - Authentication (RBAC)
- * Register with role (farmer | buyer), login, role-based redirect.
- * Depends on: app.js (LivestockConnect)
+ * Livestock Connect - Email + Password Authentication
  */
 
 (function () {
   'use strict';
 
-  const LC = window.LivestockConnect;
-  if (!LC) return;
-
-  const getUsers = LC.getUsers;
-  const saveUsers = LC.saveUsers;
-  const setCurrentUser = LC.setCurrentUser;
-  const getCurrentUser = LC.getCurrentUser;
-
+  const LC = window.LivestockConnect || {};
   const ROLES = { FARMER: 'farmer', BUYER: 'buyer' };
 
-  /**
-   * Register new user with role. Returns { success, message }.
-   * @param {Object} data - { fullName, phone, location, role, password, confirmPassword }
-   */
-  const registerUser = (data) => {
-    const { fullName, phone, location, role, password, confirmPassword } = data;
+  const registerUser = async (data) => {
+    const { fullName, email, phone, location, role, password, confirmPassword } = data;
 
-    if (!fullName || !phone || !location || !role || !password || !confirmPassword) {
+    if (!fullName || !email || !phone || !location || !role || !password || !confirmPassword) {
       return { success: false, message: 'Please fill in all fields.' };
     }
-
     if (role !== ROLES.FARMER && role !== ROLES.BUYER) {
-      return { success: false, message: 'Please select a role (Farmer or Buyer).' };
+      return { success: false, message: 'Please select a valid role.' };
     }
+    if (password !== confirmPassword) return { success: false, message: 'Passwords do not match.' };
+    if (password.length < 6) return { success: false, message: 'Password must be at least 6 characters.' };
 
-    if (password !== confirmPassword) {
-      return { success: false, message: 'Passwords do not match.' };
+    const client = window.SupabaseClient.getSupabase();
+    if (!client) return { success: false, message: 'Supabase not initialized.' };
+
+    try {
+      const { data: authData, error } = await client.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            phone: phone.trim(),
+            location: location.trim(),
+            role
+          }
+        }
+      });
+
+      if (error) return { success: false, message: error.message };
+
+      return { 
+        success: true, 
+        message: 'Account created successfully!' + (authData.session ? '' : ' Please check your email to confirm if required.') 
+      };
+    } catch (e) {
+      return { success: false, message: e.message };
     }
-
-    if (password.length < 4) {
-      return { success: false, message: 'Password should be at least 4 characters.' };
-    }
-
-    const users = getUsers();
-    const existing = users.find((u) => u.phone === phone.trim());
-    if (existing) {
-      return { success: false, message: 'This phone number is already registered.' };
-    }
-
-    const user = {
-      id: Date.now().toString(),
-      fullName: fullName.trim(),
-      phone: phone.trim(),
-      location: (location || '').trim(),
-      role: role,
-      password: password,
-      createdAt: new Date().toISOString()
-    };
-
-    users.push(user);
-    saveUsers(users);
-    return { success: true, message: 'Account created. You can now log in.' };
   };
 
-  /**
-   * Login with phone and password. Returns { success, message, user }.
-   * Redirect is handled by caller (e.g. login.html) based on user.role.
-   */
-  const loginUser = (phone, password) => {
-    if (!phone || !password) {
-      return { success: false, message: 'Please enter phone and password.' };
-    }
+  const loginUser = async (email, password) => {
+    if (!email || !password) return { success: false, message: 'Please enter email and password.' };
 
-    const users = getUsers();
-    const user = users.find((u) => u.phone === phone.trim() && u.password === password);
-    if (!user) {
-      return { success: false, message: 'Wrong phone number or password.' };
-    }
+    const client = window.SupabaseClient.getSupabase();
+    if (!client) return { success: false, message: 'Supabase not initialized.' };
 
-    const { password: _, ...userWithoutPassword } = user;
-    setCurrentUser(userWithoutPassword);
-    return { success: true, message: 'Login successful.', user: userWithoutPassword };
+    try {
+      const { error } = await client.auth.signInWithPassword({ 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
+      if (error) return { success: false, message: error.message };
+
+      const user = await LC.getCurrentUser();
+      return { success: true, message: 'Login successful!', user };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
   };
 
-  /**
-   * Get redirect URL after login based on role.
-   */
   const getRedirectAfterLogin = (user) => {
-    if (user.role === ROLES.FARMER) return 'dashboard.html';
-    if (user.role === ROLES.BUYER) return 'buyer/marketplace.html';
-    return 'index.html';
+    return user.role === ROLES.FARMER ? 'dashboard.html' : 'buyer/marketplace.html';
   };
 
   window.LivestockConnectAuth = {

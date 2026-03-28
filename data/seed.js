@@ -18,6 +18,19 @@
       const alreadySeeded = LC.getStorage(SEEDED_KEY, null);
       if (alreadySeeded) return;
 
+      if (window.LivestockConnectSupabase && window.LivestockConnectSupabase.isSupabaseConfigured()) {
+        window.LivestockConnectSupabase.seedMockData(MOCK).then((result) => {
+          if (result.success) {
+            LC.setStorage(SEEDED_KEY, '1');
+          } else {
+            console.warn('Supabase seed failed:', result.message);
+          }
+        }).catch((err) => {
+          console.warn('Supabase seed failed:', err);
+        });
+        return;
+      }
+
       if (MOCK.mockUsers && Array.isArray(MOCK.mockUsers)) {
         const existingUsers = LC.getUsers();
         if (existingUsers.length === 0) {

@@ -8,6 +8,7 @@
   <meta name="description" content="Create your Livestock Connect account.">
   <title>Create Account - Livestock Connect</title>
   <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="no-nav">
   <div class="app-container">
@@ -20,6 +21,7 @@
     <div id="register-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
 
     <form id="register-form" novalidate>
+      <!-- Step 1: Role Selection -->
       <div id="register-step-role" class="register-flow-pane">
         <div class="form-group">
           <label class="form-label">Select Role</label>
@@ -43,31 +45,39 @@
           </div>
         </div>
       </div>
+
+      <!-- Step 2: Details -->
       <div id="register-step-details" class="register-flow-pane" hidden>
         <div class="form-group register-back-step-wrap">
           <button type="button" class="register-back-step" id="register-change-role" aria-label="Go back to role selection">← Change role</button>
         </div>
         <p class="register-role-summary text-muted" id="register-role-summary" aria-live="polite"></p>
+
         <div class="form-group">
           <label class="form-label" for="fullName">Full Name</label>
-          <input type="text" id="fullName" class="form-input" name="fullName" placeholder="Your full name" required autocomplete="name" aria-required="true">
+          <input type="text" id="fullName" class="form-input" placeholder="Your full name" required autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="your@email.com" required autocomplete="email">
         </div>
         <div class="form-group">
           <label class="form-label" for="phone">Phone Number</label>
-          <input type="tel" id="phone" class="form-input" name="phone" placeholder="07XXXXXXXX" required autocomplete="tel" aria-required="true">
+          <input type="tel" id="phone" class="form-input" placeholder="07XXXXXXXX" required autocomplete="tel">
         </div>
         <div class="form-group">
           <label class="form-label" for="location">Location</label>
-          <input type="text" id="location" class="form-input" name="location" placeholder="Village or district" required autocomplete="street-address" aria-required="true">
+          <input type="text" id="location" class="form-input" placeholder="Village or district" required autocomplete="street-address">
         </div>
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" class="form-input" name="password" placeholder="At least 4 characters" required minlength="4" autocomplete="new-password" aria-required="true">
+          <input type="password" id="password" class="form-input" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
         </div>
         <div class="form-group">
           <label class="form-label" for="confirmPassword">Confirm Password</label>
-          <input type="password" id="confirmPassword" class="form-input" name="confirmPassword" placeholder="Same as above" required autocomplete="new-password" aria-required="true">
+          <input type="password" id="confirmPassword" class="form-input" placeholder="Same as above" required autocomplete="new-password">
         </div>
+
         <button type="submit" class="btn btn-primary btn-block">Create Account</button>
       </div>
     </form>
@@ -76,101 +86,76 @@
       Already have an account? <a href="login.html">Login</a>
     </p>
   </div>
+
+  <!-- Scripts -->
   <script src="js/app.js"></script>
-  <script src="data/mock-data.js"></script>
-  <script src="data/seed.js"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/auth.js"></script>
   <script>
     (function () {
       const form = document.getElementById('register-form');
       const alertEl = document.getElementById('register-alert');
-      const roleFarmer = document.getElementById('role-farmer');
-      const roleBuyer = document.getElementById('role-buyer');
-      const wrapFarmer = document.getElementById('role-farmer-wrap');
-      const wrapBuyer = document.getElementById('role-buyer-wrap');
+
       const stepRole = document.getElementById('register-step-role');
       const stepDetails = document.getElementById('register-step-details');
+
       const subtitleEl = document.getElementById('register-subtitle');
       const roleSummaryEl = document.getElementById('register-role-summary');
       const changeRoleBtn = document.getElementById('register-change-role');
       const pageBack = document.getElementById('register-page-back');
 
-      const subtitleRoleStep = 'Join as a farmer (seller) or buyer. Choose your role below.';
-      const subtitleDetailsStep = 'Fill in your details to finish creating your account.';
+      const roleFarmer = document.getElementById('role-farmer');
+      const roleBuyer = document.getElementById('role-buyer');
 
-      const showAlert = (message, type) => {
+      const showAlert = (message, type = 'success') => {
         alertEl.textContent = message;
-        alertEl.className = 'alert alert-' + (type === 'error' ? 'error' : 'success');
+        alertEl.className = `alert alert-${type}`;
         alertEl.style.display = 'block';
+        setTimeout(() => alertEl.style.display = 'none', 5000);
       };
 
-      const hideAlert = () => { alertEl.style.display = 'none'; };
-
-      const syncRoleCardStyles = () => {
-        wrapFarmer.classList.toggle('selected', roleFarmer.checked);
-        wrapBuyer.classList.toggle('selected', roleBuyer.checked);
+      const showRoleStep = () => {
+        stepRole.hidden = false;
+        stepDetails.hidden = true;
+        subtitleEl.textContent = 'Join as a farmer (seller) or buyer. Choose your role below.';
       };
 
       const showDetailsStep = () => {
         stepRole.hidden = true;
         stepDetails.hidden = false;
-        subtitleEl.textContent = subtitleDetailsStep;
-        if (roleFarmer.checked) {
-          roleSummaryEl.textContent = 'Signing up as: Farmer (seller)';
-        } else {
-          roleSummaryEl.textContent = 'Signing up as: Buyer';
-        }
-        window.scrollTo(0, 0);
-        document.getElementById('fullName').focus();
+        subtitleEl.textContent = 'Fill in your details to finish creating your account.';
+        roleSummaryEl.textContent = roleFarmer.checked 
+          ? 'Signing up as: Farmer (seller)' 
+          : 'Signing up as: Buyer';
       };
 
-      const showRoleStep = () => {
-        hideAlert();
-        stepDetails.hidden = true;
-        stepRole.hidden = false;
-        subtitleEl.textContent = subtitleRoleStep;
-        roleSummaryEl.textContent = '';
-        window.scrollTo(0, 0);
-        if (roleFarmer.checked) {
-          roleFarmer.focus();
-        } else if (roleBuyer.checked) {
-          roleBuyer.focus();
-        }
-      };
-
-      const handleRoleChange = () => {
-        syncRoleCardStyles();
-        if (roleFarmer.checked || roleBuyer.checked) {
-          showDetailsStep();
-        }
-      };
-
-      roleFarmer.addEventListener('change', handleRoleChange);
-      roleBuyer.addEventListener('change', handleRoleChange);
+      // Role selection
+      roleFarmer.addEventListener('change', () => {
+        if (roleFarmer.checked || roleBuyer.checked) showDetailsStep();
+      });
+      roleBuyer.addEventListener('change', () => {
+        if (roleFarmer.checked || roleBuyer.checked) showDetailsStep();
+      });
 
       changeRoleBtn.addEventListener('click', showRoleStep);
 
-      pageBack.addEventListener('click', function (e) {
+      pageBack.addEventListener('click', (e) => {
         if (!stepDetails.hidden) {
           e.preventDefault();
           showRoleStep();
           return;
         }
-        e.preventDefault();
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = 'login.html';
-        }
+        window.history.back();
       });
 
-      form.addEventListener('submit', function (e) {
+      // Form Submit
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        hideAlert();
-
         const roleEl = form.querySelector('input[name="role"]:checked');
+
         const data = {
           fullName: form.fullName.value.trim(),
+          email: form.email.value.trim(),
           phone: form.phone.value.trim(),
           location: form.location.value.trim(),
           role: roleEl ? roleEl.value : '',
@@ -178,14 +163,20 @@
           confirmPassword: form.confirmPassword.value
         };
 
-        const result = window.LivestockConnectAuth.registerUser(data);
+        const result = await window.LivestockConnectAuth.registerUser(data);
+
         if (result.success) {
           showAlert(result.message, 'success');
-          setTimeout(function () { window.location.href = 'login.html'; }, 1500);
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1500);
         } else {
           showAlert(result.message, 'error');
         }
       });
+
+      // Start with role step
+      showRoleStep();
     })();
   </script>
 </body>
