@@ -5,22 +5,25 @@
 (function () {
   'use strict';
 
-  // REAL SUPABASE VALUES
-  const SUPABASE_URL = 'https://dyjrimcweqeiezhyejpy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_d6T4noMn7DmpR-84WI5b7Q_MvTwquO0'; // my anon/public key
+  //supabase config -  actual values
+  const SUPABASE_URL = 'https://dyjrimcweqeiezhyejpy.supabase.co';     
+  const SUPABASE_ANON_KEY = 'sb_publishable_d6T4noMn7DmpR-84WI5b7Q_MvTwquO0'; // my real anon key
 
   let supabaseInstance = null;
 
   const initializeSupabase = () => {
     if (supabaseInstance) return supabaseInstance;
+
     if (typeof window.Supabase === 'undefined') {
-      console.error('❌ Supabase JS not loaded!');
+      console.error('❌ Supabase JS library not loaded!');
       return null;
     }
+
     supabaseInstance = window.Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true }
     });
-    console.log('✅ Supabase client initialized');
+
+    console.log('✅ Supabase client initialized successfully');
     return supabaseInstance;
   };
 
