@@ -2,7 +2,7 @@
  * Livestock Connect - Service Worker
  * Network-first for HTML and app scripts so first load is always fresh; cache for offline fallback.
  */
-const CACHE_NAME = 'livestock-connect-v2';
+const CACHE_NAME = 'livestock-connect-v3';
 const BASE = (self.location.pathname.replace(/sw\.js.*$/, '') || '/').replace(/\/?$/, '/');
 
 function isNetworkFirstRequest(request) {

@@ -8,8 +8,10 @@
   <meta name="description" content="Create your Livestock Connect account.">
   <title>Create Account - Livestock Connect</title>
   <link rel="stylesheet" href="css/styles.css">
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Supabase CDN - Load early -->
+
+  <script src="js/supabase.js?v=3"></script>
 </head>
 <body class="no-nav">
   <div class="app-container">
@@ -22,25 +24,25 @@
     <div id="register-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
 
     <form id="register-form" novalidate>
-      <!-- Step 1: Role Selection -->
+      <!-- Step 1: Role -->
       <div id="register-step-role" class="register-flow-pane">
         <div class="form-group">
           <label class="form-label">Select Role</label>
-          <div class="role-options" role="group" aria-label="Choose your role">
+          <div class="role-options">
             <label class="role-option" id="role-farmer-wrap">
-              <input type="radio" name="role" value="farmer" id="role-farmer" aria-required="true">
-              <span class="role-option-icon" aria-hidden="true">🐄</span>
+              <input type="radio" name="role" value="farmer" id="role-farmer">
+              <span class="role-option-icon">🐄</span>
               <div>
                 <strong>Farmer (I sell animals)</strong>
-                <span class="text-muted" style="display: block; font-size: 0.85rem;">Post livestock for sale and manage listings.</span>
+                <span class="text-muted">Post livestock for sale and manage listings.</span>
               </div>
             </label>
             <label class="role-option" id="role-buyer-wrap">
               <input type="radio" name="role" value="buyer" id="role-buyer">
-              <span class="role-option-icon" aria-hidden="true">🛒</span>
+              <span class="role-option-icon">🛒</span>
               <div>
                 <strong>Buyer (I want to buy animals)</strong>
-                <span class="text-muted" style="display: block; font-size: 0.85rem;">Browse listings and contact farmers.</span>
+                <span class="text-muted">Browse listings and contact farmers.</span>
               </div>
             </label>
           </div>
@@ -50,33 +52,33 @@
       <!-- Step 2: Details -->
       <div id="register-step-details" class="register-flow-pane" hidden>
         <div class="form-group register-back-step-wrap">
-          <button type="button" class="register-back-step" id="register-change-role" aria-label="Go back to role selection">← Change role</button>
+          <button type="button" class="register-back-step" id="register-change-role">← Change role</button>
         </div>
-        <p class="register-role-summary text-muted" id="register-role-summary" aria-live="polite"></p>
+        <p class="register-role-summary text-muted" id="register-role-summary"></p>
 
         <div class="form-group">
           <label class="form-label" for="fullName">Full Name</label>
-          <input type="text" id="fullName" class="form-input" placeholder="Your full name" required autocomplete="name">
+          <input type="text" id="fullName" class="form-input" placeholder="Your full name" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>
-          <input type="email" id="email" class="form-input" placeholder="your@email.com" required autocomplete="email">
+          <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="phone">Phone Number</label>
-          <input type="tel" id="phone" class="form-input" placeholder="07XXXXXXXX" required autocomplete="tel">
+          <input type="tel" id="phone" class="form-input" placeholder="07XXXXXXXX" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="location">Location</label>
-          <input type="text" id="location" class="form-input" placeholder="Village or district" required autocomplete="street-address">
+          <input type="text" id="location" class="form-input" placeholder="Village or district" required>
         </div>
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" class="form-input" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+          <input type="password" id="password" class="form-input" placeholder="At least 6 characters" required minlength="6">
         </div>
         <div class="form-group">
           <label class="form-label" for="confirmPassword">Confirm Password</label>
-          <input type="password" id="confirmPassword" class="form-input" placeholder="Same as above" required autocomplete="new-password">
+          <input type="password" id="confirmPassword" class="form-input" placeholder="Same as above" required>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">Create Account</button>
@@ -88,19 +90,19 @@
     </p>
   </div>
 
-  <!-- IMPORTANT: Scripts must load in this exact order -->
-  <script src="js/app.js"></script>
-  <script src="js/supabase-client.js"></script>
-  <script src="js/auth.js"></script>
+  <!-- Scripts - Correct order + small delay for CDN -->
+  <script src="js/app.js?v=3"></script>
+  <script src="js/supabase-client.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
 
   <script>
     (function () {
+      // Your existing form logic (same as before)
       const form = document.getElementById('register-form');
       const alertEl = document.getElementById('register-alert');
 
       const stepRole = document.getElementById('register-step-role');
       const stepDetails = document.getElementById('register-step-details');
-
       const subtitleEl = document.getElementById('register-subtitle');
       const roleSummaryEl = document.getElementById('register-role-summary');
       const changeRoleBtn = document.getElementById('register-change-role');
@@ -126,36 +128,21 @@
         stepRole.hidden = true;
         stepDetails.hidden = false;
         subtitleEl.textContent = 'Fill in your details to finish creating your account.';
-        roleSummaryEl.textContent = roleFarmer.checked 
-          ? 'Signing up as: Farmer (seller)' 
-          : 'Signing up as: Buyer';
+        roleSummaryEl.textContent = roleFarmer.checked ? 'Signing up as: Farmer (seller)' : 'Signing up as: Buyer';
       };
 
-      // Role selection handlers
-      roleFarmer.addEventListener('change', () => {
-        if (roleFarmer.checked || roleBuyer.checked) showDetailsStep();
-      });
-      roleBuyer.addEventListener('change', () => {
-        if (roleFarmer.checked || roleBuyer.checked) showDetailsStep();
-      });
+      roleFarmer.addEventListener('change', () => { if (roleFarmer.checked || roleBuyer.checked) showDetailsStep(); });
+      roleBuyer.addEventListener('change', () => { if (roleFarmer.checked || roleBuyer.checked) showDetailsStep(); });
 
       changeRoleBtn.addEventListener('click', showRoleStep);
-
       pageBack.addEventListener('click', (e) => {
-        if (!stepDetails.hidden) {
-          e.preventDefault();
-          showRoleStep();
-          return;
-        }
+        if (!stepDetails.hidden) { e.preventDefault(); showRoleStep(); return; }
         window.history.back();
       });
 
-      // Form Submit - Main registration logic
-      form.addEventListener('submit', async function (e) {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const roleEl = form.querySelector('input[name="role"]:checked');
-
         const data = {
           fullName: form.fullName.value.trim(),
           email: form.email.value.trim(),
@@ -166,20 +153,15 @@
           confirmPassword: form.confirmPassword.value
         };
 
-        // This is where the error was happening before
         const result = await window.LivestockConnectAuth.registerUser(data);
-
         if (result.success) {
           showAlert(result.message, 'success');
-          setTimeout(() => {
-            window.location.href = 'login.html';
-          }, 1500);
+          setTimeout(() => window.location.href = 'login.html', 1500);
         } else {
-          showAlert(result.message, 'error');
+          showAlert(result.message || 'Registration failed', 'error');
         }
       });
 
-      // Start with role selection
       showRoleStep();
     })();
   </script>

@@ -7,106 +7,250 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="Farmer dashboard - Livestock Connect">
   <title>Dashboard - Livestock Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js?v=3"></script>
+  <style>
+    :root {
+      --green-900:#14532d;--green-700:#15803d;--green-500:#22c55e;
+      --green-400:#4ade80;--green-100:#dcfce7;--green-50:#f0fdf4;
+      --amber-400:#fbbf24;--amber-100:#fef3c7;
+      --sky-100:#e0f2fe;--rose-100:#ffe4e6;
+      --slate-900:#0f172a;--slate-700:#334155;--slate-500:#64748b;
+      --slate-200:#e2e8f0;--slate-100:#f1f5f9;--white:#ffffff;
+      --font:'Plus Jakarta Sans',-apple-system,sans-serif;
+      --nav-h:68px;--ease-out:cubic-bezier(0.16,1,0.3,1);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font);background:var(--slate-100);color:var(--slate-900);min-height:100vh;padding-bottom:calc(var(--nav-h) + 16px);-webkit-font-smoothing:antialiased;}
+
+    /* Hero */
+    .dash-hero{background:linear-gradient(135deg,var(--green-900) 0%,var(--green-700) 60%,#166534 100%);padding:52px 20px 80px;position:relative;overflow:hidden;}
+    .dash-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 300px 200px at 110% -20%,rgba(74,222,128,.25) 0%,transparent 70%),radial-gradient(ellipse 200px 300px at -10% 120%,rgba(20,83,45,.6) 0%,transparent 70%);pointer-events:none;}
+    .dash-hero::after{content:'';position:absolute;width:320px;height:320px;border-radius:50%;border:1.5px solid rgba(255,255,255,.08);top:-100px;right:-80px;pointer-events:none;}
+    .hero-inner{position:relative;max-width:480px;margin:0 auto;}
+    .hero-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+    .hero-brand{display:flex;align-items:center;gap:10px;}
+    .hero-brand-icon{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);}
+    .hero-brand-name{font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.08em;text-transform:uppercase;}
+    .hero-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:background .2s;text-decoration:none;backdrop-filter:blur(8px);}
+    .hero-avatar:active{background:rgba(255,255,255,.25);}
+    .hero-greeting{font-size:.8rem;font-weight:500;color:var(--green-400);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;opacity:0;animation:fadeUp .5s var(--ease-out) .1s forwards;}
+    .hero-name{font-size:1.75rem;font-weight:800;color:var(--white);line-height:1.15;letter-spacing:-.02em;margin-bottom:8px;opacity:0;animation:fadeUp .5s var(--ease-out) .18s forwards;min-height:34px;}
+    .hero-sub{font-size:.9rem;color:rgba(255,255,255,.6);font-weight:400;opacity:0;animation:fadeUp .5s var(--ease-out) .26s forwards;}
+
+    /* Stats */
+    .stats-strip{max-width:480px;margin:-36px auto 0;padding:0 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;opacity:0;animation:fadeUp .55s var(--ease-out) .35s forwards;}
+    .stat-card{background:var(--white);border-radius:16px;padding:14px 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.05);text-align:center;border:1px solid rgba(0,0,0,.04);}
+    .stat-icon{font-size:1.3rem;margin-bottom:4px;display:block;}
+    .stat-value{font-size:1.35rem;font-weight:800;color:var(--slate-900);line-height:1;display:block;margin-bottom:3px;}
+    .stat-label{font-size:.68rem;font-weight:600;color:var(--slate-500);text-transform:uppercase;letter-spacing:.05em;}
+
+    /* Content */
+    .dash-content{max-width:480px;margin:0 auto;padding:24px 16px 8px;}
+    .section-label{font-size:.7rem;font-weight:700;color:var(--slate-500);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;padding-left:2px;}
+
+    /* Primary action */
+    .primary-action{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,var(--green-700),var(--green-900));border-radius:20px;padding:20px;margin-bottom:20px;text-decoration:none;color:var(--white);box-shadow:0 8px 32px rgba(21,128,61,.35),0 2px 8px rgba(21,128,61,.2);transition:transform .18s var(--ease-out),box-shadow .18s var(--ease-out);position:relative;overflow:hidden;opacity:0;animation:fadeUp .5s var(--ease-out) .45s forwards;}
+    .primary-action::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 60%);pointer-events:none;}
+    .primary-action:active{transform:scale(.98);box-shadow:0 4px 16px rgba(21,128,61,.3);}
+    .pa-icon-wrap{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;border:1px solid rgba(255,255,255,.2);}
+    .pa-text h2{font-size:1.05rem;font-weight:700;margin-bottom:3px;letter-spacing:-.01em;}
+    .pa-text p{font-size:.82rem;opacity:.75;font-weight:400;}
+    .pa-arrow{margin-left:auto;font-size:1.3rem;opacity:.7;flex-shrink:0;}
+
+    /* Grid cards */
+    .grid-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;}
+    .grid-card{background:var(--white);border-radius:18px;padding:18px 16px;text-decoration:none;color:var(--slate-900);border:1px solid var(--slate-200);box-shadow:0 2px 12px rgba(0,0,0,.05);transition:transform .18s var(--ease-out),box-shadow .18s var(--ease-out);display:flex;flex-direction:column;gap:10px;opacity:0;}
+    .grid-card:active{transform:scale(.97);box-shadow:0 1px 6px rgba(0,0,0,.08);}
+    .grid-card:nth-child(1){animation:fadeUp .5s var(--ease-out) .5s forwards;}
+    .grid-card:nth-child(2){animation:fadeUp .5s var(--ease-out) .56s forwards;}
+    .grid-card:nth-child(3){animation:fadeUp .5s var(--ease-out) .62s forwards;}
+    .grid-card:nth-child(4){animation:fadeUp .5s var(--ease-out) .68s forwards;}
+    .gc-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;}
+    .gc-icon-wrap.amber{background:var(--amber-100);}
+    .gc-icon-wrap.sky{background:var(--sky-100);}
+    .gc-icon-wrap.rose{background:#ffe4e6;}
+    .gc-icon-wrap.green{background:var(--green-100);}
+    .gc-title{font-size:.92rem;font-weight:700;color:var(--slate-900);letter-spacing:-.01em;}
+    .gc-desc{font-size:.75rem;color:var(--slate-500);font-weight:400;margin-top:1px;}
+    .gc-arrow{font-size:.75rem;color:var(--slate-500);margin-top:2px;}
+
+    /* Tip card */
+    .tip-card{background:linear-gradient(135deg,var(--amber-100),#fef9c3);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid rgba(251,191,36,.3);opacity:0;animation:fadeUp .5s var(--ease-out) .72s forwards;margin-bottom:8px;text-decoration:none;color:var(--slate-900);transition:transform .18s var(--ease-out);}
+    .tip-card:active{transform:scale(.98);}
+    .tip-emoji{font-size:1.6rem;flex-shrink:0;}
+    .tip-text strong{display:block;font-size:.9rem;font-weight:700;margin-bottom:2px;}
+    .tip-text span{font-size:.78rem;color:var(--slate-500);}
+    .tip-arrow{margin-left:auto;color:var(--slate-500);font-size:.9rem;}
+
+    /* Bottom nav */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-around;padding:0 4px 8px;z-index:100;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--slate-500);font-size:.6rem;font-weight:600;letter-spacing:.03em;padding:6px 0;transition:color .15s;min-height:48px;justify-content:center;font-family:var(--font);}
+    .nav-item.active{color:var(--green-700);}
+    .nav-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s,transform .15s var(--ease-out);font-size:1.1rem;}
+    .nav-item.active .nav-icon{background:var(--green-100);transform:scale(1.08);}
+    .nav-label{text-transform:uppercase;letter-spacing:.06em;}
+
+    /* Skeleton */
+    .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.15) 25%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.15) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;display:inline-block;}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+  </style>
 </head>
 <body>
-  <div class="app-container">
-    <header class="page-header">
-      <a href="#" class="back-link" aria-label="Go back to previous page" onclick="event.preventDefault(); history.back(); return false;">← Back</a>
-      <h1>Dashboard</h1>
-      <p class="text-muted" id="welcome-text">Manage your livestock and see market info.</p>
-    </header>
 
-    <div class="dashboard-cards" role="navigation" aria-label="Main features">
-      <a href="farmer/add-animal.html" class="feature-card">
-        <span class="feature-card-icon" aria-hidden="true">➕</span>
-        <div class="feature-card-text">
-          <h2>Add Animal</h2>
-          <p>Post an animal for sale</p>
+  <div class="dash-hero">
+    <div class="hero-inner">
+      <div class="hero-topbar">
+        <div class="hero-brand">
+          <div class="hero-brand-icon">🐄</div>
+          <span class="hero-brand-name">Livestock Connect</span>
         </div>
+        <a href="profile.html" class="hero-avatar" aria-label="My profile">👤</a>
+      </div>
+      <div class="hero-greeting" id="hero-greeting">Good day, farmer</div>
+      <div class="hero-name" id="hero-name"><span class="skeleton" style="width:180px;height:30px;">&nbsp;</span></div>
+      <div class="hero-sub" id="hero-sub">Loading your dashboard…</div>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-card">
+      <span class="stat-icon">🐄</span>
+      <span class="stat-value" id="stat-listings">—</span>
+      <span class="stat-label">Listings</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">✅</span>
+      <span class="stat-value" id="stat-active">—</span>
+      <span class="stat-label">Active</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📅</span>
+      <span class="stat-value" id="stat-day">—</span>
+      <span class="stat-label">Today</span>
+    </div>
+  </div>
+
+  <div class="dash-content">
+    <p class="section-label">Quick Actions</p>
+
+    <a href="farmer/add-animal.html" class="primary-action">
+      <div class="pa-icon-wrap">➕</div>
+      <div class="pa-text">
+        <h2>Add New Animal</h2>
+        <p>Post a listing for sale right now</p>
+      </div>
+      <span class="pa-arrow">›</span>
+    </a>
+
+    <div class="grid-cards" role="navigation" aria-label="Dashboard features">
+      <a href="farmer/my-listings.html" class="grid-card">
+        <div class="gc-icon-wrap amber">📋</div>
+        <div>
+          <div class="gc-title">My Listings</div>
+          <div class="gc-desc">View &amp; manage</div>
+        </div>
+        <div class="gc-arrow">→</div>
       </a>
-      <a href="farmer/my-listings.html" class="feature-card">
-        <span class="feature-card-icon" aria-hidden="true">📋</span>
-        <div class="feature-card-text">
-          <h2>My Listings</h2>
-          <p>View and edit your posted animals</p>
+      <a href="livestock.html" class="grid-card">
+        <div class="gc-icon-wrap green">🐄</div>
+        <div>
+          <div class="gc-title">My Livestock</div>
+          <div class="gc-desc">All animals</div>
         </div>
+        <div class="gc-arrow">→</div>
       </a>
-      <a href="livestock.html" class="feature-card">
-        <span class="feature-card-icon" aria-hidden="true">🐄</span>
-        <div class="feature-card-text">
-          <h2>Livestock</h2>
-          <p>View all your animals in one list</p>
+      <a href="prices.html" class="grid-card">
+        <div class="gc-icon-wrap sky">💰</div>
+        <div>
+          <div class="gc-title">Market Prices</div>
+          <div class="gc-desc">Current UGX rates</div>
         </div>
+        <div class="gc-arrow">→</div>
       </a>
-      <a href="reports.html" class="feature-card">
-        <span class="feature-card-icon" aria-hidden="true">📊</span>
-        <div class="feature-card-text">
-          <h2>Reports</h2>
-          <p>Summary of your listings</p>
+      <a href="reports.html" class="grid-card">
+        <div class="gc-icon-wrap rose">📊</div>
+        <div>
+          <div class="gc-title">Reports</div>
+          <div class="gc-desc">Listing summary</div>
         </div>
-      </a>
-      <a href="prices.html" class="feature-card">
-        <span class="feature-card-icon" aria-hidden="true">💰</span>
-        <div class="feature-card-text">
-          <h2>Market Prices</h2>
-          <p>Current livestock prices in UGX</p>
-        </div>
-      </a>
-      <a href="health.html" class="feature-card">
-        <span class="feature-card-icon" aria-hidden="true">💚</span>
-        <div class="feature-card-text">
-          <h2>Health Tips</h2>
-          <p>Simple advice for your animals</p>
-        </div>
+        <div class="gc-arrow">→</div>
       </a>
     </div>
+
+    <a href="health.html" class="tip-card">
+      <span class="tip-emoji">💡</span>
+      <div class="tip-text">
+        <strong>Health Tips</strong>
+        <span>Simple advice to keep your animals well</span>
+      </div>
+      <span class="tip-arrow">›</span>
+    </a>
   </div>
 
   <nav class="bottom-nav" aria-label="Bottom navigation">
     <a href="dashboard.html" class="nav-item active" aria-current="page">
-      <span class="nav-item-icon">🏠</span>
-      <span>Home</span>
+      <div class="nav-icon">🏠</div>
+      <span class="nav-label">Home</span>
     </a>
     <a href="farmer/add-animal.html" class="nav-item">
-      <span class="nav-item-icon">➕</span>
-      <span>Add Animal</span>
+      <div class="nav-icon">➕</div>
+      <span class="nav-label">Add</span>
     </a>
     <a href="farmer/my-listings.html" class="nav-item">
-      <span class="nav-item-icon">📋</span>
-      <span>My Listings</span>
+      <div class="nav-icon">📋</div>
+      <span class="nav-label">Listings</span>
     </a>
     <a href="livestock.html" class="nav-item">
-      <span class="nav-item-icon">🐄</span>
-      <span>Livestock</span>
-    </a>
-    <a href="health.html" class="nav-item">
-      <span class="nav-item-icon">💚</span>
-      <span>Health Tips</span>
+      <div class="nav-icon">🐄</div>
+      <span class="nav-label">Livestock</span>
     </a>
     <a href="profile.html" class="nav-item">
-      <span class="nav-item-icon">👤</span>
-      <span>Profile</span>
+      <div class="nav-icon">👤</div>
+      <span class="nav-label">Profile</span>
     </a>
   </nav>
 
-  <script src="js/app.js"></script>
-  <script src="data/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
-  <script src="js/supabase-client.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/supabase-client.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
   <script>
-    (function () {
-      if (!window.LivestockConnect.requireAuth('farmer')) return;
-      const LC = window.LivestockConnect;
-      const refreshContent = () => {
-        const user = LC.getCurrentUser();
-        const el = document.getElementById('welcome-text');
-        if (el && user && user.fullName) el.textContent = 'Hello ' + user.fullName + '. Manage your livestock and see market info.';
-      };
-      refreshContent();
-      LC.onPageShowRefresh(refreshContent);
+    (async function () {
+      const allowed = await window.LivestockConnect.requireAuth('farmer');
+      if (!allowed) return;
+
+      const user = await window.LivestockConnect.getCurrentUser();
+
+      // Time-based greeting
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('hero-greeting').textContent = greeting + ', farmer';
+      document.getElementById('hero-name').textContent = user ? (user.fullName || 'Welcome back') : 'Welcome back';
+      document.getElementById('hero-sub').textContent = 'Here\'s your farm overview for today.';
+
+      // Day label
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      document.getElementById('stat-day').textContent = days[new Date().getDay()];
+
+      // Try to load listing stats from Supabase
+      const client = window.SupabaseClient.getSupabase();
+      if (client && user) {
+        try {
+          const { data: listings } = await client
+            .from('listings')
+            .select('id, status')
+            .eq('user_id', user.id);
+          if (listings) {
+            document.getElementById('stat-listings').textContent = listings.length;
+            document.getElementById('stat-active').textContent = listings.filter(l => l.status !== 'sold').length;
+          }
+        } catch (e) { /* listings table may not exist yet */ }
+      }
     })();
   </script>
 </body>

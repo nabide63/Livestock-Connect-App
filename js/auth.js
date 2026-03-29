@@ -39,9 +39,27 @@
 
       if (error) return { success: false, message: error.message };
 
-      return { 
-        success: true, 
-        message: 'Account created successfully!' + (authData.session ? '' : ' Please check your email to confirm if required.') 
+      // FIX: Insert a row into the profiles table immediately after sign-up.
+      // Without this, getCurrentUser() gets a 406 and the user is stuck in a redirect loop.
+      if (authData.user) {
+        const { error: profileError } = await client.from('profiles').upsert({
+          id:        authData.user.id,
+          full_name: fullName.trim(),
+          phone:     phone.trim(),
+          location:  location.trim(),
+          role:      role
+        }, { onConflict: 'id' });
+
+        if (profileError) {
+          console.warn('Profile insert warning:', profileError.message);
+          // Non-fatal — auth metadata fallback in supabase-client.js will handle it
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Account created successfully!' +
+          (authData.session ? '' : ' Please check your email to confirm if required.')
       };
     } catch (e) {
       return { success: false, message: e.message };
@@ -55,13 +73,13 @@
     if (!client) return { success: false, message: 'Supabase not initialized.' };
 
     try {
-      const { error } = await client.auth.signInWithPassword({ 
-        email: email.trim().toLowerCase(), 
-        password 
+      const { error } = await client.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
       });
       if (error) return { success: false, message: error.message };
 
-      const user = await LC.getCurrentUser();
+      const user = await window.SupabaseClient.getCurrentUser();
       return { success: true, message: 'Login successful!', user };
     } catch (e) {
       return { success: false, message: e.message };
@@ -69,7 +87,7 @@
   };
 
   const getRedirectAfterLogin = (user) => {
-    return user.role === ROLES.FARMER ? 'dashboard.html' : 'buyer/marketplace.html';
+    return user && user.role === ROLES.FARMER ? 'dashboard.html' : 'buyer/marketplace.html';
   };
 
   window.LivestockConnectAuth = {
