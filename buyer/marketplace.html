@@ -312,7 +312,7 @@
       const container=document.getElementById('listings-container'),emptyState=document.getElementById('empty-state');
       const searchInput=document.getElementById('search-input');
       const LC=window.LivestockConnect,Livestock=window.LivestockConnectLivestock;
-      function renderListings(list){
+      async function renderListings(list){
         container.innerHTML='';
         if(!list.length){container.style.display='none';emptyState.style.display='block';return;}
         container.style.display='flex';emptyState.style.display='none';
@@ -334,7 +334,7 @@
         });
       }
       let allListings=[];
-      function refreshContent(){allListings=Livestock.getAllListings();renderListings(allListings);}
+      async function refreshContent(){allListings=Livestock.getAllListings();renderListings(allListings);}
       searchInput.addEventListener('input',function(){renderListings(Livestock.filterListings(allListings,searchInput.value.trim()));});
       refreshContent();LC.onPageShowRefresh(refreshContent);
     })();

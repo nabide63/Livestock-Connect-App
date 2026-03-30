@@ -361,7 +361,7 @@
 
       const Livestock = window.LivestockConnectLivestock;
       const LC = window.LivestockConnect;
-      let listing = Livestock.getListingById(id);
+      let listing = await Livestock.getListingById(id);
       if (!listing) {
         LC.showToast('Listing not found.', 'error');
         window.location.href = 'my-listings.html';
@@ -384,8 +384,8 @@
         animalTypeSelect.appendChild(opt);
       });
 
-      const refreshContent = () => {
-        listing = Livestock.getListingById(id);
+      const refreshContent = async () => {
+        listing = await Livestock.getListingById(id);
         if (!listing) {
           LC.showToast('Listing not found.', 'error');
           window.location.href = 'my-listings.html';
@@ -459,9 +459,9 @@
         alertEl.style.display = 'block';
       };
 
-      function doUpdate(imageDataValue) {
+      async function doUpdate(imageDataValue) {
         const priceVal = form.price.value.trim().replace(/\s/g, '');
-        const result = Livestock.updateListing(id, {
+        const result = await Livestock.updateListing(id, {
           animalType: form.animalType.value,
           age: form.age.value.trim(),
           weight: form.weight.value.trim(),

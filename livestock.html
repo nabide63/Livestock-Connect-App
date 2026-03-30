@@ -309,7 +309,7 @@
       const ok=await window.LivestockConnect.requireAuth('farmer');if(!ok)return;
       const listEl=document.getElementById('livestock-list'),emptyEl=document.getElementById('empty-state');
       const LC=window.LivestockConnect,Livestock=window.LivestockConnectLivestock;
-      function renderList(){
+      async function renderList(){
         const list=Livestock.getMyListings();listEl.innerHTML='';
         if(!list.length){listEl.style.display='none';emptyEl.style.display='block';return;}
         listEl.style.display='flex';emptyEl.style.display='none';

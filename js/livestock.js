@@ -1,53 +1,152 @@
 /**
  * Livestock Connect - Listings (Supabase backend)
- * All operations use the real 'listings' table.
  */
-
 (function () {
   'use strict';
 
   const LC = window.LivestockConnect;
-  if (!LC) return;
+  if (!LC) { console.error('LivestockConnect not loaded'); return; }
 
-  const getSupabase = () => window.SupabaseClient.getSupabase();
-  const getCurrentUser = LC.getCurrentUser;
+  const getClient = () => window.SupabaseClient ? window.SupabaseClient.getSupabase() : null;
+  const getUser   = () => window.SupabaseClient ? window.SupabaseClient.getCurrentUser() : null;
 
+  // ── Add listing ──────────────────────────────────────────
   const addListing = async (record) => {
-    const user = await getCurrentUser();
+    const user = await getUser();
     if (!user || user.role !== 'farmer') return { success: false, message: 'Only logged-in farmers can post.' };
 
-    const client = getSupabase();
-    const newListing = {
-      user_id: user.id,
-      animal_type: record.animalType?.trim(),
-      age: record.age?.trim(),
-      weight: record.weight?.trim(),
-      price: parseFloat(record.price) || 0,
+    const client = getClient();
+    if (!client) return { success: false, message: 'Supabase not initialized.' };
+
+    const { data, error } = await client.from('listings').insert({
+      user_id:       user.id,
+      animal_type:   (record.animalType  || '').trim(),
+      age:           (record.age         || '').trim(),
+      weight:        (record.weight      || '').trim(),
+      price:         parseFloat(record.price) || 0,
       health_status: record.healthStatus || 'Healthy',
-      location: record.location?.trim(),
-      description: record.description?.trim(),
-      image_url: record.imageUrl || null   // from Cloudinary
-    };
+      location:      (record.location    || '').trim(),
+      description:   (record.description || '').trim(),
+      image_url:     record.imageData || record.imageUrl || null
+    }).select().single();
 
-    const { data, error } = await client.from('listings').insert(newListing).select().single();
-    return error 
+    return error
       ? { success: false, message: error.message }
-      : { success: true, message: 'Animal listed successfully!', listing: data };
+      : { success: true,  message: 'Animal listed successfully!', listing: data };
   };
 
-  const updateListing = async (id, updates) => { /* similar Supabase .update() + ownership check via RLS */ };
-  const deleteListing = async (id) => { /* similar Supabase .delete() + ownership check */ };
-  const getAllListings = async () => {
-    const { data } = await getSupabase().from('listings')
-      .select('*, profiles!user_id(full_name, phone, location)')
-      .order('created_at', { ascending: false });
-    return data || [];
+  // ── Update listing ───────────────────────────────────────
+  const updateListing = async (id, updates) => {
+    const user = await getUser();
+    if (!user) return { success: false, message: 'Not logged in.' };
+
+    const client = getClient();
+    if (!client) return { success: false, message: 'Supabase not initialized.' };
+
+    const { error } = await client.from('listings').update({
+      animal_type:   (updates.animalType  || '').trim(),
+      age:           (updates.age         || '').trim(),
+      weight:        (updates.weight      || '').trim(),
+      price:         parseFloat(updates.price) || 0,
+      health_status: updates.healthStatus || 'Healthy',
+      location:      (updates.location    || '').trim(),
+      description:   (updates.description || '').trim(),
+      image_url:     updates.imageData || updates.imageUrl || null
+    }).eq('id', id).eq('user_id', user.id);
+
+    return error
+      ? { success: false, message: error.message }
+      : { success: true,  message: 'Listing updated.' };
   };
-  const getMyListings = async () => { /* filter by current user_id */ };
-  const getListingById = async (id) => { /* .eq('id', id).single() */ };
-  const getFarmerById = async (userId) => { /* query profiles */ };
-  const getListingImageUrl = (l) => l?.image_url || null;
-  const filterListings = (list, term) => { /* same client-side filter as before */ };
+
+  // ── Delete listing ───────────────────────────────────────
+  const deleteListing = async (id) => {
+    const user = await getUser();
+    if (!user) return { success: false, message: 'Not logged in.' };
+
+    const client = getClient();
+    if (!client) return { success: false, message: 'Supabase not initialized.' };
+
+    const { error } = await client.from('listings')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    return error
+      ? { success: false, message: error.message }
+      : { success: true,  message: 'Listing removed.' };
+  };
+
+  // ── Get all listings (buyer marketplace) ─────────────────
+  const getAllListings = async () => {
+    const client = getClient();
+    if (!client) return [];
+    const { data } = await client.from('listings')
+      .select('*')
+      .order('created_at', { ascending: false });
+    return (data || []).map(mapRow);
+  };
+
+  // ── Get my listings (farmer) ─────────────────────────────
+  const getMyListings = async () => {
+    const user = await getUser();
+    if (!user) return [];
+    const client = getClient();
+    if (!client) return [];
+    const { data } = await client.from('listings')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    return (data || []).map(mapRow);
+  };
+
+  // ── Get single listing ───────────────────────────────────
+  const getListingById = async (id) => {
+    const client = getClient();
+    if (!client) return null;
+    const { data } = await client.from('listings').select('*').eq('id', id).single();
+    return data ? mapRow(data) : null;
+  };
+
+  // ── Get farmer profile ───────────────────────────────────
+  const getFarmerById = async (userId) => {
+    const client = getClient();
+    if (!client) return null;
+    const { data } = await client.from('profiles').select('full_name, phone, location').eq('id', userId).single();
+    if (!data) return null;
+    return { fullName: data.full_name, phone: data.phone, location: data.location };
+  };
+
+  // ── Helpers ──────────────────────────────────────────────
+  // Map snake_case DB row → camelCase app object
+  function mapRow(row) {
+    return {
+      id:           row.id,
+      userId:       row.user_id,
+      animalType:   row.animal_type,
+      age:          row.age,
+      weight:       row.weight,
+      price:        row.price,
+      healthStatus: row.health_status,
+      location:     row.location,
+      description:  row.description,
+      imageData:    row.image_url,
+      imageUrl:     row.image_url,
+      createdAt:    row.created_at
+    };
+  }
+
+  const getListingImageUrl = (listing) => listing?.imageData || listing?.imageUrl || null;
+
+  const filterListings = (list, term) => {
+    if (!term) return list;
+    const t = term.toLowerCase();
+    return list.filter(l =>
+      (l.animalType || '').toLowerCase().includes(t) ||
+      (l.location   || '').toLowerCase().includes(t) ||
+      (l.description|| '').toLowerCase().includes(t)
+    );
+  };
 
   window.LivestockConnectLivestock = {
     addListing, updateListing, deleteListing,
