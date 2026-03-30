@@ -3,166 +3,360 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Create your Livestock Connect account.">
-  <title>Create Account - Livestock Connect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#14532d">
+  <title>Create Account — Livestock Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- Supabase CDN - Load early -->
+  <script src="js/supabase.js?v=3"></script><style>
+  /* ════════════════════════════════════
+     LIVESTOCK CONNECT — GLOBAL STYLES
+  ════════════════════════════════════ */
+  :root {
+    --g900:#14532d; --g800:#166534; --g700:#15803d; --g600:#16a34a;
+    --g500:#22c55e; --g400:#4ade80; --g200:#bbf7d0; --g100:#dcfce7; --g50:#f0fdf4;
+    --amber:#fbbf24; --amber-bg:#fef3c7;
+    --sky-bg:#e0f2fe; --rose-bg:#ffe4e6;
+    --s900:#0f172a; --s800:#1e293b; --s700:#334155; --s600:#475569;
+    --s500:#64748b; --s400:#94a3b8; --s300:#cbd5e1; --s200:#e2e8f0;
+    --s100:#f1f5f9; --s50:#f8fafc; --white:#fff;
+    --red:#dc2626; --red-bg:#fee2e2;
+    --font:'Plus Jakarta Sans',-apple-system,sans-serif;
+    --nav-h:60px;
+    --safe-bottom:env(safe-area-inset-bottom, 0px);
+    --r:12px; --r-lg:16px; --r-xl:20px;
+    --ease:cubic-bezier(0.16,1,0.3,1);
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  html { height:100%; -webkit-text-size-adjust:100%; }
+  body {
+    font-family:var(--font); background:var(--s100); color:var(--s900);
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+    padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 8px);
+    overscroll-behavior-y:none;
+  }
+  body.no-nav { padding-bottom:0; }
+  a { color:inherit; text-decoration:none; }
+  img { display:block; max-width:100%; }
 
-  <script src="js/supabase.js?v=3"></script>
-</head>
+  /* ── Page wrapper ── */
+  .page { max-width:480px; margin:0 auto; }
+
+  /* ── Topbar ── */
+  .topbar {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; padding-top:calc(12px + env(safe-area-inset-top,0px));
+    position:sticky; top:0; z-index:50;
+    background:rgba(248,250,252,.95);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--s200);
+  }
+  .topbar-back {
+    width:36px; height:36px; border-radius:10px;
+    background:var(--white); border:1.5px solid var(--s200);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.85rem; color:var(--s700); cursor:pointer; flex-shrink:0;
+    transition:background .15s; -webkit-tap-highlight-color:transparent;
+  }
+  .topbar-back:active { background:var(--s100); }
+  .topbar-title { font-size:1rem; font-weight:700; color:var(--s900); letter-spacing:-.01em; flex:1; }
+  .topbar-action {
+    margin-left:auto; display:flex; align-items:center; gap:6px;
+    padding:7px 12px; border-radius:9px;
+    background:var(--g700); color:var(--white);
+    font-size:.78rem; font-weight:700; font-family:var(--font);
+    border:none; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  }
+  .topbar-action:active { background:var(--g800); }
+
+  /* ── Buttons ── */
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px; padding:13px 18px; border-radius:var(--r);
+    font-family:var(--font); font-size:.92rem; font-weight:700;
+    cursor:pointer; border:none; transition:all .15s var(--ease);
+    letter-spacing:.01em; min-height:48px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-block { width:100%; }
+  .btn-primary { background:var(--g700); color:var(--white); box-shadow:0 3px 12px rgba(21,128,61,.28); }
+  .btn-primary:active { background:var(--g800); box-shadow:none; transform:scale(.98); }
+  .btn-primary:disabled { background:#86efac; box-shadow:none; cursor:not-allowed; }
+  .btn-secondary { background:var(--g100); color:var(--g800); }
+  .btn-secondary:active { background:var(--g200); transform:scale(.98); }
+  .btn-outline { background:var(--white); color:var(--s700); border:1.5px solid var(--s200); }
+  .btn-outline:active { background:var(--s50); transform:scale(.98); }
+  .btn-danger { background:var(--red-bg); color:var(--red); }
+  .btn-danger:active { background:#fecaca; transform:scale(.98); }
+  .btn-ghost { background:transparent; color:var(--s600); padding:9px 12px; min-height:auto; }
+  .btn-ghost:active { background:var(--s100); }
+  .btn-sm { padding:9px 14px; font-size:.8rem; min-height:36px; border-radius:9px; gap:6px; }
+  .btn i { font-size:.85em; }
+
+  /* ── Forms ── */
+  .form-body { padding:20px 16px; }
+  .field { margin-bottom:15px; }
+  .field-label {
+    display:block; font-size:.72rem; font-weight:700;
+    color:var(--s500); letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px;
+  }
+  .field-hint { font-size:.74rem; color:var(--s400); margin-top:4px; }
+  .input, .select {
+    width:100%; padding:12px 14px;
+    border:1.5px solid var(--s200); border-radius:var(--r);
+    font-family:var(--font); font-size:.95rem; color:var(--s900);
+    background:var(--white); -webkit-appearance:none; appearance:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .input::placeholder { color:var(--s400); }
+  .input:focus, .select:focus {
+    outline:none; border-color:var(--g600);
+    box-shadow:0 0 0 3px rgba(22,163,74,.12);
+  }
+  textarea.input { resize:vertical; min-height:90px; line-height:1.5; }
+  .select {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:40px; cursor:pointer;
+  }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  /* ── Alert ── */
+  .alert { display:none; padding:12px 14px; border-radius:var(--r); font-size:.86rem; font-weight:500; margin-bottom:14px; line-height:1.45; }
+  .alert-error { background:var(--red-bg); color:var(--red); }
+  .alert-success { background:var(--g100); color:var(--g800); }
+
+  /* ── Cards ── */
+  .card { background:var(--white); border-radius:var(--r-lg); border:1px solid var(--s200); box-shadow:0 2px 10px rgba(0,0,0,.05); }
+  .card-pad { padding:18px; }
+
+  /* ── Listing cards ── */
+  .cards-list { display:flex; flex-direction:column; gap:12px; padding:12px 16px 4px; }
+  .lcard { background:var(--white); border-radius:var(--r-lg); border:1px solid var(--s200); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); animation:fadeUp .4s var(--ease) both; }
+  .lcard-img { width:100%; height:160px; object-fit:cover; background:var(--s100); }
+  .lcard-img-placeholder { width:100%; height:120px; background:var(--g50); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:var(--g400); }
+  .lcard-body { padding:13px 14px 14px; }
+  .lcard-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .lcard-type { font-size:.95rem; font-weight:700; color:var(--s900); }
+  .lcard-price { font-size:.88rem; font-weight:700; color:var(--g700); }
+  .lcard-meta { font-size:.78rem; color:var(--s500); margin-bottom:3px; display:flex; align-items:center; gap:5px; }
+  .lcard-meta i { color:var(--s400); font-size:.72rem; width:12px; text-align:center; }
+  .lcard-actions { display:flex; gap:8px; margin-top:12px; }
+  .lcard-actions .btn { flex:1; }
+
+  /* ── Badges ── */
+  .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:.7rem; font-weight:700; letter-spacing:.03em; }
+  .badge-healthy { background:var(--g100); color:var(--g800); }
+  .badge-sick, .badge-ill { background:var(--red-bg); color:var(--red); }
+  .badge-recovering { background:var(--amber-bg); color:#92400e; }
+  .badge-default { background:var(--s100); color:var(--s600); }
+
+  /* ── Detail rows ── */
+  .detail-list { border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--s200); }
+  .detail-row { display:flex; align-items:center; justify-content:space-between; padding:13px 15px; background:var(--white); border-bottom:1px solid var(--s100); }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-label { font-size:.82rem; color:var(--s500); font-weight:500; display:flex; align-items:center; gap:7px; }
+  .detail-label i { font-size:.75rem; color:var(--s400); width:14px; text-align:center; }
+  .detail-value { font-size:.87rem; font-weight:600; color:var(--s900); text-align:right; max-width:58%; }
+
+  /* ── Empty state ── */
+  .empty { text-align:center; padding:48px 24px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .empty-icon { font-size:2.2rem; color:var(--s300); }
+  .empty h3 { font-size:1rem; font-weight:700; color:var(--s700); }
+  .empty p { font-size:.84rem; color:var(--s400); max-width:220px; line-height:1.4; }
+
+  /* ── Section label ── */
+  .sec-label { font-size:.68rem; font-weight:700; color:var(--s500); text-transform:uppercase; letter-spacing:.1em; padding:0 16px; margin:18px 0 8px; display:block; }
+
+  /* ── Price card ── */
+  .price-card { display:flex; align-items:center; justify-content:space-between; background:var(--white); border-radius:var(--r); padding:14px 16px; border:1px solid var(--s200); }
+  .price-type { font-size:.9rem; font-weight:600; color:var(--s700); display:flex; align-items:center; gap:8px; }
+  .price-type i { color:var(--g600); font-size:.82rem; width:16px; text-align:center; }
+  .price-value { font-size:.9rem; font-weight:700; color:var(--g700); }
+
+  /* ── Health tip card ── */
+  .htip { background:var(--white); border-radius:var(--r-lg); padding:15px; border:1px solid var(--s200); box-shadow:0 1px 6px rgba(0,0,0,.04); display:flex; gap:13px; align-items:flex-start; }
+  .htip-icon { width:40px; height:40px; border-radius:11px; background:var(--g50); display:flex; align-items:center; justify-content:center; font-size:.95rem; color:var(--g700); flex-shrink:0; border:1px solid var(--g100); }
+  .htip h3 { font-size:.9rem; font-weight:700; margin-bottom:4px; }
+  .htip p { font-size:.79rem; color:var(--s500); line-height:1.45; }
+
+  /* ── Role selector ── */
+  .role-options { display:flex; flex-direction:column; gap:10px; }
+  .role-option { display:flex; align-items:center; gap:14px; background:var(--white); border:2px solid var(--s200); border-radius:var(--r-lg); padding:15px; cursor:pointer; transition:border-color .15s, background .15s; -webkit-tap-highlight-color:transparent; }
+  .role-option input { position:absolute; opacity:0; width:0; height:0; }
+  .role-option.selected { border-color:var(--g600); background:var(--g50); }
+  .role-icon-wrap { width:44px; height:44px; border-radius:12px; background:var(--g100); display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:var(--g700); flex-shrink:0; }
+  .role-text strong { display:block; font-size:.92rem; font-weight:700; margin-bottom:2px; }
+  .role-text span { font-size:.78rem; color:var(--s500); }
+
+  /* ── Photo preview ── */
+  .photo-preview-img { width:100%; max-height:200px; object-fit:cover; border-radius:var(--r); display:block; }
+  .photo-wrap { display:none; margin-top:10px; }
+
+  /* ── Report card ── */
+  .report-card { background:var(--white); border-radius:var(--r-lg); padding:18px; border:1px solid var(--s200); }
+  .report-card h3 { font-size:.72rem; font-weight:700; color:var(--s500); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .report-card h3 i { font-size:.75rem; color:var(--g600); }
+  .report-value { font-size:2rem; font-weight:800; color:var(--g700); }
+
+  /* ── Contact card ── */
+  .contact-card { background:var(--white); border-radius:var(--r-xl); padding:24px 20px; border:1px solid var(--s200); box-shadow:0 4px 20px rgba(0,0,0,.06); text-align:center; }
+  .contact-avatar { width:72px; height:72px; border-radius:50%; background:var(--g100); border:3px solid var(--g200); display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:var(--g700); margin:0 auto 14px; }
+  .contact-name { font-size:1.15rem; font-weight:800; margin-bottom:4px; }
+  .contact-meta { font-size:.83rem; color:var(--s500); margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .contact-meta i { color:var(--s400); }
+  .contact-phone { font-size:1.5rem; font-weight:800; color:var(--g700); letter-spacing:.04em; margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:10px; }
+
+  /* ── Search ── */
+  .search-wrap { padding:12px 16px 4px; position:relative; }
+  .search-wrap i { position:absolute; left:27px; top:50%; transform:translateY(-50%); color:var(--s400); font-size:.85rem; pointer-events:none; }
+  .search-input { padding-left:38px !important; }
+
+  /* ── Utilities ── */
+  .p-page { padding:0 16px; }
+  .gap-col { display:flex; flex-direction:column; gap:10px; }
+  .mt-4{margin-top:4px;} .mt-8{margin-top:8px;} .mt-12{margin-top:12px;}
+  .mt-16{margin-top:16px;} .mt-20{margin-top:20px;} .mt-24{margin-top:24px;}
+  .text-center { text-align:center; }
+  .text-muted { color:var(--s500); font-size:.85rem; }
+  .text-small { font-size:.78rem; }
+  .divider { height:1px; background:var(--s200); margin:16px 0; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+  .fade-in { opacity:0; animation:fadeUp .4s var(--ease) both; }
+  .d1{animation-delay:.06s;} .d2{animation-delay:.12s;} .d3{animation-delay:.18s;}
+  .d4{animation-delay:.24s;} .d5{animation-delay:.30s;} .d6{animation-delay:.36s;}
+
+  /* ════════════════════════════════
+     BOTTOM NAV — overrides styles.css
+  ════════════════════════════════ */
+  .bottom-nav {
+    position:fixed !important; bottom:0 !important; left:0 !important; right:0 !important;
+    width:100% !important; max-width:100% !important; transform:none !important;
+    height:calc(var(--nav-h) + var(--safe-bottom)) !important;
+    padding-bottom:var(--safe-bottom) !important;
+    background:rgba(255,255,255,.97) !important;
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid rgba(0,0,0,.08) !important;
+    display:flex !important; align-items:center !important;
+    justify-content:space-around !important;
+    padding-left:8px !important; padding-right:8px !important;
+    padding-top:0 !important;
+    z-index:1000 !important;
+    box-shadow:0 -1px 0 rgba(0,0,0,.05), 0 -4px 16px rgba(0,0,0,.04);
+  }
+  .nav-item {
+    flex:1 !important; display:flex !important; flex-direction:column !important;
+    align-items:center !important; justify-content:center !important;
+    gap:4px !important; text-decoration:none !important; color:#94a3b8 !important;
+    font-family:var(--font) !important; font-size:.58rem !important;
+    font-weight:700 !important; letter-spacing:.04em !important; text-transform:uppercase !important;
+    padding:6px 4px !important; min-width:0 !important; min-height:48px !important;
+    transition:color .15s !important; background:transparent !important;
+    -webkit-tap-highlight-color:transparent !important;
+  }
+  .nav-item.active { color:var(--g700) !important; }
+  .nav-item:active { opacity:.7 !important; }
+  .nav-item:hover, .nav-item:focus { color:var(--g700) !important; background:transparent !important; outline:none !important; }
+  .nav-icon {
+    width:32px !important; height:32px !important; border-radius:10px !important;
+    display:flex !important; align-items:center !important; justify-content:center !important;
+    font-size:.95rem !important; transition:background .15s, transform .15s !important;
+    flex-shrink:0 !important;
+  }
+  .nav-item.active .nav-icon { background:var(--g100) !important; transform:scale(1.06) !important; color:var(--g700) !important; }
+  .nav-item .nav-icon i { font-size:.9rem; }
+  .nav-item span:not(.nav-icon) { line-height:1 !important; }
+  /* Kill old nav styles */
+  .nav-item-icon { display:none !important; }
+</style>
+<style>
+  .auth-hero{background:linear-gradient(150deg,var(--g900),var(--g700));padding:40px 24px 28px;text-align:center;position:relative;overflow:hidden;}
+  .auth-hero::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,.08);top:-70px;right:-50px;}
+  .auth-hero-icon{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:white;margin:0 auto 14px;}
+  .auth-hero h1{font-size:1.4rem;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:5px;}
+  .auth-hero p{font-size:.85rem;color:rgba(255,255,255,.65);}
+</style>
 <body class="no-nav">
-  <div class="app-container">
-    <header class="page-header">
-      <a href="#" class="back-link" id="register-page-back" aria-label="Go back">← Back</a>
+  <div class="page">
+    <div class="auth-hero">
+      <div class="auth-hero-icon"><i class="fa-solid fa-cow"></i></div>
       <h1>Create Account</h1>
-      <p class="text-muted" id="register-subtitle">Join as a farmer (seller) or buyer. Choose your role below.</p>
-    </header>
-
-    <div id="register-alert" class="alert" role="alert" aria-live="polite" style="display: none;"></div>
-
-    <form id="register-form" novalidate>
-      <!-- Step 1: Role -->
-      <div id="register-step-role" class="register-flow-pane">
-        <div class="form-group">
-          <label class="form-label">Select Role</label>
+      <p>Join as a farmer or buyer</p>
+    </div>
+    <div class="form-body">
+      <div id="register-alert" class="alert" role="alert" aria-live="polite"></div>
+      <div id="step-role">
+        <div class="field">
+          <label class="field-label"><i class="fa-solid fa-circle-question"></i> I am a…</label>
           <div class="role-options">
             <label class="role-option" id="role-farmer-wrap">
               <input type="radio" name="role" value="farmer" id="role-farmer">
-              <span class="role-option-icon">🐄</span>
-              <div>
-                <strong>Farmer (I sell animals)</strong>
-                <span class="text-muted">Post livestock for sale and manage listings.</span>
-              </div>
+              <div class="role-icon-wrap"><i class="fa-solid fa-tractor"></i></div>
+              <div class="role-text"><strong>Farmer</strong><span>I sell animals</span></div>
             </label>
             <label class="role-option" id="role-buyer-wrap">
               <input type="radio" name="role" value="buyer" id="role-buyer">
-              <span class="role-option-icon">🛒</span>
-              <div>
-                <strong>Buyer (I want to buy animals)</strong>
-                <span class="text-muted">Browse listings and contact farmers.</span>
-              </div>
+              <div class="role-icon-wrap"><i class="fa-solid fa-basket-shopping"></i></div>
+              <div class="role-text"><strong>Buyer</strong><span>I want to buy animals</span></div>
             </label>
           </div>
         </div>
       </div>
-
-      <!-- Step 2: Details -->
-      <div id="register-step-details" class="register-flow-pane" hidden>
-        <div class="form-group register-back-step-wrap">
-          <button type="button" class="register-back-step" id="register-change-role">← Change role</button>
+      <div id="step-details" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <button type="button" id="back-to-role" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Change role</button>
+          <span id="role-summary" class="badge badge-healthy"></span>
         </div>
-        <p class="register-role-summary text-muted" id="register-role-summary"></p>
-
-        <div class="form-group">
-          <label class="form-label" for="fullName">Full Name</label>
-          <input type="text" id="fullName" class="form-input" placeholder="Your full name" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="email">Email Address</label>
-          <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="phone">Phone Number</label>
-          <input type="tel" id="phone" class="form-input" placeholder="07XXXXXXXX" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="location">Location</label>
-          <input type="text" id="location" class="form-input" placeholder="Village or district" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" class="form-input" placeholder="At least 6 characters" required minlength="6">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="confirmPassword">Confirm Password</label>
-          <input type="password" id="confirmPassword" class="form-input" placeholder="Same as above" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        <div class="field"><label class="field-label" for="fullName"><i class="fa-solid fa-user"></i> Full Name</label><input type="text" id="fullName" class="input" placeholder="Your full name" autocomplete="name"></div>
+        <div class="field"><label class="field-label" for="email"><i class="fa-solid fa-envelope"></i> Email</label><input type="email" id="email" class="input" placeholder="your@email.com" autocomplete="email" inputmode="email"></div>
+        <div class="field"><label class="field-label" for="phone"><i class="fa-solid fa-phone"></i> Phone</label><input type="tel" id="phone" class="input" placeholder="07XXXXXXXX" autocomplete="tel" inputmode="tel"></div>
+        <div class="field"><label class="field-label" for="location"><i class="fa-solid fa-location-dot"></i> Location</label><input type="text" id="location" class="input" placeholder="Village or district"></div>
+        <div class="field"><label class="field-label" for="password"><i class="fa-solid fa-lock"></i> Password</label><input type="password" id="password" class="input" placeholder="At least 6 characters" minlength="6"></div>
+        <div class="field"><label class="field-label" for="confirmPassword"><i class="fa-solid fa-lock"></i> Confirm Password</label><input type="password" id="confirmPassword" class="input" placeholder="Same as above"></div>
+        <button type="button" id="register-btn" class="btn btn-primary btn-block"><i class="fa-solid fa-user-plus"></i> Create Account</button>
       </div>
-    </form>
-
-    <p class="text-muted mt-2 text-center">
-      Already have an account? <a href="login.html">Login</a>
-    </p>
+      <div class="divider"></div>
+      <p class="text-muted text-center">Already have an account? <a href="login.html" style="color:var(--g700);font-weight:700;">Sign In</a></p>
+    </div>
   </div>
-
-  <!-- Scripts - Correct order + small delay for CDN -->
   <script src="js/app.js?v=3"></script>
   <script src="js/supabase-client.js?v=3"></script>
   <script src="js/auth.js?v=3"></script>
-
   <script>
-    (function () {
-      // Your existing form logic (same as before)
-      const form = document.getElementById('register-form');
-      const alertEl = document.getElementById('register-alert');
-
-      const stepRole = document.getElementById('register-step-role');
-      const stepDetails = document.getElementById('register-step-details');
-      const subtitleEl = document.getElementById('register-subtitle');
-      const roleSummaryEl = document.getElementById('register-role-summary');
-      const changeRoleBtn = document.getElementById('register-change-role');
-      const pageBack = document.getElementById('register-page-back');
-
-      const roleFarmer = document.getElementById('role-farmer');
-      const roleBuyer = document.getElementById('role-buyer');
-
-      const showAlert = (message, type = 'success') => {
-        alertEl.textContent = message;
-        alertEl.className = `alert alert-${type}`;
-        alertEl.style.display = 'block';
-        setTimeout(() => alertEl.style.display = 'none', 5000);
-      };
-
-      const showRoleStep = () => {
-        stepRole.hidden = false;
-        stepDetails.hidden = true;
-        subtitleEl.textContent = 'Join as a farmer (seller) or buyer. Choose your role below.';
-      };
-
-      const showDetailsStep = () => {
-        stepRole.hidden = true;
-        stepDetails.hidden = false;
-        subtitleEl.textContent = 'Fill in your details to finish creating your account.';
-        roleSummaryEl.textContent = roleFarmer.checked ? 'Signing up as: Farmer (seller)' : 'Signing up as: Buyer';
-      };
-
-      roleFarmer.addEventListener('change', () => { if (roleFarmer.checked || roleBuyer.checked) showDetailsStep(); });
-      roleBuyer.addEventListener('change', () => { if (roleFarmer.checked || roleBuyer.checked) showDetailsStep(); });
-
-      changeRoleBtn.addEventListener('click', showRoleStep);
-      pageBack.addEventListener('click', (e) => {
-        if (!stepDetails.hidden) { e.preventDefault(); showRoleStep(); return; }
-        window.history.back();
+    (function(){
+      var alertEl=document.getElementById('register-alert'),
+          stepRole=document.getElementById('step-role'),stepDetails=document.getElementById('step-details'),
+          roleSummary=document.getElementById('role-summary'),
+          farmerWrap=document.getElementById('role-farmer-wrap'),buyerWrap=document.getElementById('role-buyer-wrap');
+      function showAlert(m,t){alertEl.textContent=m;alertEl.className='alert alert-'+(t||'error');alertEl.style.display='block';alertEl.scrollIntoView({behavior:'smooth',block:'nearest'});}
+      function showStep(n){stepRole.style.display=n===1?'block':'none';stepDetails.style.display=n===2?'block':'none';alertEl.style.display='none';}
+      function getRole(){return document.querySelector('input[name="role"]:checked')?.value||'';}
+      ['role-farmer','role-buyer'].forEach(function(id){
+        document.getElementById(id).addEventListener('change',function(){
+          farmerWrap.classList.toggle('selected',this.value==='farmer');
+          buyerWrap.classList.toggle('selected',this.value==='buyer');
+          roleSummary.textContent=this.value==='farmer'?'Farmer':'Buyer';
+          setTimeout(function(){showStep(2);},150);
+        });
       });
-
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const roleEl = form.querySelector('input[name="role"]:checked');
-        const data = {
-          fullName: form.fullName.value.trim(),
-          email: form.email.value.trim(),
-          phone: form.phone.value.trim(),
-          location: form.location.value.trim(),
-          role: roleEl ? roleEl.value : '',
-          password: form.password.value,
-          confirmPassword: form.confirmPassword.value
-        };
-
-        const result = await window.LivestockConnectAuth.registerUser(data);
-        if (result.success) {
-          showAlert(result.message, 'success');
-          setTimeout(() => window.location.href = 'login.html', 1500);
-        } else {
-          showAlert(result.message || 'Registration failed', 'error');
-        }
+      document.getElementById('back-to-role').addEventListener('click',function(){showStep(1);});
+      document.getElementById('register-btn').addEventListener('click',async function(){
+        var btn=this;
+        var data={fullName:document.getElementById('fullName').value.trim(),email:document.getElementById('email').value.trim(),
+          phone:document.getElementById('phone').value.trim(),location:document.getElementById('location').value.trim(),
+          role:getRole(),password:document.getElementById('password').value,confirmPassword:document.getElementById('confirmPassword').value};
+        btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Creating…';
+        var r=await window.LivestockConnectAuth.registerUser(data);
+        if(r.success){showAlert(r.message,'success');setTimeout(function(){window.location.replace('login.html');},1500);}
+        else{showAlert(r.message,'error');btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-user-plus"></i> Create Account';}
       });
-
-      showRoleStep();
     })();
   </script>
 </body>
