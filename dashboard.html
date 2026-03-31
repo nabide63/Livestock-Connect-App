@@ -431,28 +431,40 @@
       const client = window.SupabaseClient.getSupabase();
       if (client && user) {
         try {
-          const { data: listings, error } = await client
+          // Use select('*', {count:'exact'}) to get count even with RLS
+          // Also try both user_id as uuid and as string
+          const { data: listings, error, count } = await client
             .from('listings')
-            .select('id, status')
+            .select('id, user_id')
             .eq('user_id', user.id);
 
+          console.log('Dashboard stats — user.id:', user.id);
+          console.log('Dashboard stats — listings:', listings);
+          console.log('Dashboard stats — error:', error);
+
           if (error) {
-            // RLS may be blocking SELECT — try without filter as fallback
-            console.warn('Listings query error:', error.message);
-            // Show 0 rather than dash so user knows query ran
-            document.getElementById('stat-listings').textContent = '0';
-            document.getElementById('stat-active').textContent   = '0';
-          } else if (listings) {
+            console.error('Listings query error:', error.message, error.code);
+            // Try fetching ALL listings and filter client-side
+            // (works if RLS "Buyers can view all" policy is active)
+            const { data: all, error: e2 } = await client
+              .from('listings')
+              .select('id, user_id');
+            console.log('All listings fallback:', all, e2);
+            if (all) {
+              const mine = all.filter(l => String(l.user_id) === String(user.id));
+              totalListings  = mine.length;
+              activeListings = mine.filter(l => !l.status || l.status === 'active' || l.status !== 'sold').length;
+              document.getElementById('stat-listings').textContent = totalListings;
+              document.getElementById('stat-active').textContent   = activeListings;
+            }
+          } else if (listings !== null) {
             totalListings  = listings.length;
-            // If no status column yet, treat all as active
-            activeListings = listings.filter(l => !l.status || l.status !== 'sold').length;
+            activeListings = listings.filter(l => !l.status || l.status === 'active' || l.status !== 'sold').length;
             document.getElementById('stat-listings').textContent = totalListings;
             document.getElementById('stat-active').textContent   = activeListings;
           }
         } catch(e) {
-          console.warn('Could not load listing stats:', e.message);
-          document.getElementById('stat-listings').textContent = '?';
-          document.getElementById('stat-active').textContent   = '?';
+          console.error('Could not load listing stats:', e.message);
         }
       }
 
@@ -464,7 +476,7 @@
               .from('listings').select('id, status').eq('user_id', user.id);
             if (listings) {
               totalListings  = listings.length;
-              activeListings = listings.filter(l => !l.status || l.status !== 'sold').length;
+              activeListings = listings.filter(l => !l.status || l.status === 'active' || l.status !== 'sold').length;
               document.getElementById('stat-listings').textContent = totalListings;
               document.getElementById('stat-active').textContent   = activeListings;
             }
