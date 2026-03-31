@@ -72,50 +72,50 @@ A mobile-first progressive web app (PWA) that allows farmers to list their lives
 
 ```
 Livestock-Connect-App/
-
- index.html # Welcome / landing page
- login.html # Sign in
- register.html # Create account (farmer or buyer)
- dashboard.html # Farmer dashboard with stats
- livestock.html # Farmer's full animal list
- profile.html # User profile
- prices.html # Market price reference (UGX)
- health.html # Animal health tips + external resources
- reports.html # Listing summary report
- 404.html # Not found page
- manifest.json # PWA manifest
- sw.js # Service worker (offline caching)
- seed-supabase.js # Optional DB seed script
- .env.example # Template for environment variables
-
- farmer/
- add-animal.html # Post a new listing with photo upload
- edit-animal.html # Edit an existing listing
- my-listings.html # View and manage all own listings
-
- buyer/
- marketplace.html # Browse all listings with search
- animal-details.html # Full detail view of a listing
- contact-farmer.html # Farmer contact info + call button
-
- js/
- supabase.js # Supabase JS client bundle (v2, local copy)
- supabase-client.js # Auth session + getCurrentUser helper
- app.js # Core utilities: formatUGX, requireAuth, etc.
- auth.js # Register and login logic
- livestock.js # Full listing CRUD (Supabase queries)
- cloudinary.js # Photo upload via Cloudinary unsigned preset
-
- data/
- config.js # ️ App credentials (Supabase + Cloudinary)
- mock-data.js # Animal types, health tips, market prices
- seed.js # Optional seed data
-
- css/
- styles.css # Base stylesheet
-
- supabase/
- *.sql # Database migrations (PLpgSQL)
+|
++-- index.html                  # Welcome / landing page
++-- login.html                  # Sign in
++-- register.html               # Create account (farmer or buyer)
++-- dashboard.html              # Farmer dashboard with stats
++-- livestock.html              # Farmer's full animal list
++-- profile.html                # User profile
++-- prices.html                 # Market price reference (UGX)
++-- health.html                 # Animal health tips + external resources
++-- reports.html                # Listing summary report
++-- 404.html                    # Not found page
++-- manifest.json               # PWA manifest
++-- sw.js                       # Service worker (offline caching)
++-- seed-supabase.js            # Optional DB seed script
++-- .env.example                # Template for environment variables
+|
++-- farmer/
+|   +-- add-animal.html         # Post a new listing with photo upload
+|   +-- edit-animal.html        # Edit an existing listing
+|   +-- my-listings.html        # View and manage all own listings
+|
++-- buyer/
+|   +-- marketplace.html        # Browse all listings with search
+|   +-- animal-details.html     # Full detail view of a listing
+|   +-- contact-farmer.html     # Farmer contact info + call button
+|
++-- js/
+|   +-- supabase.js             # Supabase JS client bundle (v2, local copy)
+|   +-- supabase-client.js      # Auth session + getCurrentUser helper
+|   +-- app.js                  # Core utilities: formatUGX, requireAuth, etc.
+|   +-- auth.js                 # Register and login logic
+|   +-- livestock.js            # Full listing CRUD (Supabase queries)
+|   +-- cloudinary.js           # Photo upload via Cloudinary unsigned preset
+|
++-- data/
+|   +-- config.js               # App credentials (Supabase + Cloudinary)
+|   +-- mock-data.js            # Animal types, health tips, market prices
+|   +-- seed.js                 # Optional seed data
+|
++-- css/
+|   +-- styles.css              # Base stylesheet
+|
++-- supabase/
+    +-- *.sql                   # Database migrations (PLpgSQL)
 ```
 
 ---
@@ -448,4 +448,4 @@ git push origin main
 
 ---
 
-*Built at the African Leadership University. This is a student project — Introduction to Software Engineering, Year 2 *
+*Built at the African Leadership University as a student project — Introduction to Software Engineering, Year 2*
