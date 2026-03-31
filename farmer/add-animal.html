@@ -408,31 +408,34 @@
         photoPreviewWrap.style.display = 'block';
       }
 
+      // ── CRITICAL: capture File object immediately on selection ──
+      // file input loses its reference on some browsers before submit
+      let capturedFile = null;
+
+      function isImageFile(f) {
+        if (!f) return false;
+        if (f.type && f.type.startsWith('image/')) return true;
+        const ext = (f.name || '').split('.').pop().toLowerCase();
+        return ['jpg','jpeg','png','webp','heic','heif','gif'].includes(ext);
+      }
+
       function hidePreview() {
         photoPreview.innerHTML = '';
         photoPreview.removeAttribute('data-url');
         photoPreviewWrap.style.display = 'none';
         photoInput.value = '';
+        capturedFile = null; // clear captured file too
       }
 
       photoInput.addEventListener('change', function() {
         const file = this.files[0];
+        capturedFile = file || null; // capture immediately
         hidePreview();
-        if (file && isImageFile(file)) {
-          resizeImageToDataUrl(file, 600, 0.75, showPreview);
+        if (capturedFile && isImageFile(capturedFile)) {
+          resizeImageToDataUrl(capturedFile, 600, 0.75, showPreview);
         }
       });
       photoRemoveBtn.addEventListener('click', hidePreview);
-
-      // Form submit
-
-      // Accept image files even when MIME type is empty (common on iPhone gallery)
-      function isImageFile(file) {
-        if (!file) return false;
-        if (file.type && file.type.startsWith('image/')) return true;
-        const ext = (file.name || '').split('.').pop().toLowerCase();
-        return ['jpg','jpeg','png','webp','heic','heif','gif'].includes(ext);
-      }
 
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -459,8 +462,11 @@
           imageData:   null
         };
 
-        const file       = photoInput.files[0];
+        // Use capturedFile (stored at selection time) not photoInput.files[0]
+        // which may be empty by submit time on some browsers
+        const file       = capturedFile;
         const previewUrl = photoPreview.getAttribute('data-url');
+        console.log('Submit — capturedFile:', file ? file.name : '(none)', '| isImageFile:', isImageFile(file));
 
         setBusy(true, 'Posting…');
 
