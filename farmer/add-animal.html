@@ -334,6 +334,7 @@
     </div>
   </div>
 
+  <script src="../data/config.js?v=3"></script>
   <script src="../js/app.js?v=3"></script>
   <script src="../js/supabase-client.js?v=3"></script>
   <script src="../js/auth.js?v=3"></script>
@@ -455,23 +456,23 @@
         setBusy(true, 'Posting…');
 
         try {
-          // Handle photo upload
-          // Only send to Supabase if Cloudinary is configured (gives a valid https:// URL).
-          // Base64 data: URLs violate the listings_image_url_https DB constraint — skip them.
+          // Handle photo upload via Cloudinary
           if (file && file.type.startsWith('image/')) {
             const Cloudinary = window.LivestockConnectCloudinary;
-            if (Cloudinary && Cloudinary.isCloudinaryConfigured && Cloudinary.isCloudinaryConfigured()) {
-              setBusy(true, 'Uploading photo…');
-              try {
-                record.imageData = await Cloudinary.uploadImage(file);
-              } catch(uploadErr) {
-                // Cloudinary failed — skip photo rather than sending base64
-                console.warn('Photo upload failed, listing without photo:', uploadErr);
-                record.imageData = null;
-              }
-            } else {
-              // No cloud storage configured — skip photo
-              record.imageData = null;
+            if (!Cloudinary || !Cloudinary.isCloudinaryConfigured()) {
+              showAlert('Photo upload is not configured. Please set up your Cloudinary upload preset in data/config.js.', 'error');
+              setBusy(false);
+              return;
+            }
+            setBusy(true, 'Uploading photo… 0%');
+            try {
+              record.imageData = await Cloudinary.uploadImage(file, function(pct) {
+                setBusy(true, 'Uploading photo… ' + pct + '%');
+              });
+            } catch(uploadErr) {
+              showAlert('Photo upload failed: ' + uploadErr.message, 'error');
+              setBusy(false);
+              return;
             }
           }
 

@@ -10,11 +10,11 @@
   const getClient = () => window.SupabaseClient ? window.SupabaseClient.getSupabase() : null;
   const getUser   = () => window.SupabaseClient ? window.SupabaseClient.getCurrentUser() : null;
 
-  // Only send image_url if it's a real https:// URL.
-  // base64 data: URLs violate the listings_image_url_https constraint.
+  // Only send image_url if it's a valid https:// URL (Cloudinary always returns one).
+  // After running fix-image-constraint.sql, null is also accepted by the DB.
   function sanitizeImageUrl(url) {
     if (url && typeof url === 'string' && url.startsWith('https://')) return url;
-    return undefined; // undefined = field omitted from Supabase insert
+    return null; // null = no image, which is valid after dropping the constraint
   }
 
   // ── Add listing ──────────────────────────────────────────
@@ -37,9 +37,16 @@
       image_url:     sanitizeImageUrl(record.imageData || record.imageUrl)
     }).select().single();
 
-    return error
-      ? { success: false, message: error.message }
-      : { success: true,  message: 'Animal listed successfully!', listing: data };
+    if (error) return { success: false, message: error.message };
+
+    // Merge original imageData back so local base64 previews show immediately
+    // (Supabase strips base64 per constraint — we keep it in memory only)
+    const listing = mapRow(data);
+    if (record.imageData && !listing.imageData) {
+      listing.imageData = record.imageData;
+      listing.imageUrl  = record.imageData;
+    }
+    return { success: true, message: 'Animal listed successfully!', listing };
   };
 
   // ── Update listing ───────────────────────────────────────

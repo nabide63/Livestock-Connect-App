@@ -340,7 +340,8 @@
     <a href="add-animal.html" class="nav-item"><div class="nav-icon"><i class="fa-solid fa-plus "></i></div><span>Add</span></a>
     <a href="my-listings.html" class="nav-item active" aria-current="page"><div class="nav-icon"><i class="fa-solid fa-list "></i></div><span>Listings</span></a>
     <a href="../profile.html" class="nav-item"><div class="nav-icon"><i class="fa-solid fa-user "></i></div><span>Profile</span></a>
-  </nav>  <script src="../js/app.js?v=3"></script>
+  </nav>  <script src="../data/config.js?v=3"></script>
+  <script src="../js/app.js?v=3"></script>
   <script src="../js/supabase-client.js?v=3"></script>
   <script src="../js/auth.js?v=3"></script>
   <script src="../data/mock-data.js"></script>
@@ -479,48 +480,44 @@
         }
       }
 
-      form.addEventListener('submit', function (e) {
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
         alertEl.style.display = 'none';
 
         const file = photoInput.files[0];
         const newDataUrl = photoPreview.getAttribute('data-url');
         const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
-        if (file && file.type.indexOf('image/') === 0) {
+        let imageValue = listing.imageData || null; // default: keep existing
+
+        if (file && file.type.startsWith('image/')) {
           const Cloudinary = window.LivestockConnectCloudinary;
-          if (Cloudinary && Cloudinary.isCloudinaryConfigured && Cloudinary.isCloudinaryConfigured()) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading…';
-            Cloudinary.uploadImage(file)
-              .then(function (url) {
-                doUpdate(url);
-              })
-              .catch(function () {
-                if (newDataUrl) {
-                  doUpdate(newDataUrl);
-                } else {
-                  resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
-                    doUpdate(dataUrl);
-                  });
-                }
-              })
-              .finally(function () {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Save Changes';
-              });
+          if (!Cloudinary || !Cloudinary.isCloudinaryConfigured()) {
+            showAlert('Photo upload is not configured. Please set up your Cloudinary upload preset in data/config.js.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Save';
             return;
           }
-          if (newDataUrl) {
-            doUpdate(newDataUrl);
-          } else {
-            resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
-              doUpdate(dataUrl);
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading… 0%';
+          try {
+            imageValue = await Cloudinary.uploadImage(file, function(pct) {
+              submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading… ' + pct + '%';
             });
+          } catch(err) {
+            showAlert('Photo upload failed: ' + err.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Save';
+            return;
           }
-        } else {
-          doUpdate(newDataUrl || listing.imageData || null);
+        } else if (newDataUrl) {
+          imageValue = newDataUrl;
         }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Save';
+        doUpdate(imageValue);
       });
     })();
   
