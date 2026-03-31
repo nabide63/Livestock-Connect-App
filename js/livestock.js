@@ -26,46 +26,39 @@
     if (!client) return { success: false, message: 'Supabase not initialized.' };
 
     const imageUrl = sanitizeImageUrl(record.imageData || record.imageUrl);
+    console.log('addListing — imageUrl to save:', imageUrl || '(none)');
 
-    // Step 1: Insert the listing WITHOUT image_url first
-    const { data, error } = await client.from('listings').insert({
+    // Single INSERT with all fields including image_url
+    // price is text in DB schema so keep it as string
+    const insertPayload = {
       user_id:       user.id,
       animal_type:   (record.animalType  || '').trim(),
       age:           (record.age         || '').trim(),
-      weight:        (record.weight      || '').trim(),
-      price:         parseFloat(record.price) || 0,
+      weight:        String(record.weight || '').trim(),
+      price:         String(record.price  || '').trim(),
       health_status: (record.healthStatus || 'Healthy').trim(),
       location:      (record.location    || '').trim(),
       description:   (record.description || '').trim(),
-    }).select().single();
+      image_url:     imageUrl || null,
+    };
+
+    console.log('addListing — payload:', insertPayload);
+
+    const { data, error } = await client
+      .from('listings')
+      .insert(insertPayload)
+      .select()
+      .single();
 
     if (error) {
-      console.error('addListing insert error:', error);
+      console.error('addListing error:', error);
       return { success: false, message: error.message };
     }
 
-    console.log('addListing — inserted row id:', data.id);
+    console.log('addListing — saved row:', data);
+    console.log('addListing — image_url in DB:', data.image_url || '(null)');
 
-    // Step 2: If we have a Cloudinary URL, update the image_url separately
-    // This guarantees image_url is saved even if the column was added after initial schema
-    if (imageUrl && data.id) {
-      const { error: imgError } = await client
-        .from('listings')
-        .update({ image_url: imageUrl })
-        .eq('id', data.id)
-        .eq('user_id', user.id);
-
-      if (imgError) {
-        console.error('addListing image_url update error:', imgError);
-        // Listing was saved — just without the image. Non-fatal.
-      } else {
-        console.log('addListing — image_url saved:', imageUrl);
-        data.image_url = imageUrl; // patch in-memory so card renders immediately
-      }
-    }
-
-    const listing = mapRow(data);
-    return { success: true, message: 'Animal listed successfully!', listing };
+    return { success: true, message: 'Animal listed successfully!', listing: mapRow(data) };
   };
 
   // ── Update listing ───────────────────────────────────────
@@ -80,7 +73,7 @@
       animal_type:   (updates.animalType  || '').trim(),
       age:           (updates.age         || '').trim(),
       weight:        (updates.weight      || '').trim(),
-      price:         parseFloat(updates.price) || 0,
+      price:         String(updates.price || '').trim(),
       health_status: (updates.healthStatus || 'Healthy').trim(),
       location:      (updates.location    || '').trim(),
       description:   (updates.description || '').trim(),
