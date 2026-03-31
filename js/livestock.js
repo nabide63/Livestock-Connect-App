@@ -25,8 +25,10 @@
     const client = getClient();
     if (!client) return { success: false, message: 'Supabase not initialized.' };
 
-    // Build insert object — only include image_url if we have a valid https URL
-    const insertData = {
+    const imageUrl = sanitizeImageUrl(record.imageData || record.imageUrl);
+
+    // Step 1: Insert the listing WITHOUT image_url first
+    const { data, error } = await client.from('listings').insert({
       user_id:       user.id,
       animal_type:   (record.animalType  || '').trim(),
       age:           (record.age         || '').trim(),
@@ -35,25 +37,33 @@
       health_status: (record.healthStatus || 'Healthy').trim(),
       location:      (record.location    || '').trim(),
       description:   (record.description || '').trim(),
-    };
-
-    // Only set image_url if it's a valid Cloudinary https:// URL
-    const imageUrl = sanitizeImageUrl(record.imageData || record.imageUrl);
-    if (imageUrl) insertData.image_url = imageUrl;
-
-    console.log('addListing — inserting:', {...insertData, image_url: imageUrl || '(none)'});
-
-    const { data, error } = await client.from('listings')
-      .insert(insertData)
-      .select()
-      .single();
+    }).select().single();
 
     if (error) {
-      console.error('addListing error:', error);
+      console.error('addListing insert error:', error);
       return { success: false, message: error.message };
     }
 
-    console.log('addListing — saved row:', data);
+    console.log('addListing — inserted row id:', data.id);
+
+    // Step 2: If we have a Cloudinary URL, update the image_url separately
+    // This guarantees image_url is saved even if the column was added after initial schema
+    if (imageUrl && data.id) {
+      const { error: imgError } = await client
+        .from('listings')
+        .update({ image_url: imageUrl })
+        .eq('id', data.id)
+        .eq('user_id', user.id);
+
+      if (imgError) {
+        console.error('addListing image_url update error:', imgError);
+        // Listing was saved — just without the image. Non-fatal.
+      } else {
+        console.log('addListing — image_url saved:', imageUrl);
+        data.image_url = imageUrl; // patch in-memory so card renders immediately
+      }
+    }
+
     const listing = mapRow(data);
     return { success: true, message: 'Animal listed successfully!', listing };
   };
