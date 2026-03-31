@@ -31,7 +31,7 @@
       age:           (record.age         || '').trim(),
       weight:        (record.weight      || '').trim(),
       price:         parseFloat(record.price) || 0,
-      health_status: record.healthStatus || 'Healthy',
+      health_status: (record.healthStatus || 'Healthy').trim(),
       location:      (record.location    || '').trim(),
       description:   (record.description || '').trim(),
       image_url:     sanitizeImageUrl(record.imageData || record.imageUrl)
@@ -62,7 +62,7 @@
       age:           (updates.age         || '').trim(),
       weight:        (updates.weight      || '').trim(),
       price:         parseFloat(updates.price) || 0,
-      health_status: updates.healthStatus || 'Healthy',
+      health_status: (updates.healthStatus || 'Healthy').trim(),
       location:      (updates.location    || '').trim(),
       description:   (updates.description || '').trim(),
       image_url:     sanitizeImageUrl(updates.imageData || updates.imageUrl)
