@@ -445,7 +445,7 @@
         const file = this.files[0];
         photoPreview.style.display = 'none';
         photoPreview.innerHTML = '';
-        if (file && file.type.indexOf('image/') === 0) {
+        if (file && isImageFile(file)) {
           resizeImageToDataUrl(file, 600, 0.75, function (dataUrl) {
             photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="New photo" class="photo-preview-img">';
             photoPreview.style.display = 'block';
@@ -480,6 +480,15 @@
         }
       }
 
+
+      // Accept image files even when MIME type is empty (common on iPhone gallery)
+      function isImageFile(file) {
+        if (!file) return false;
+        if (file.type && file.type.startsWith('image/')) return true;
+        const ext = (file.name || '').split('.').pop().toLowerCase();
+        return ['jpg','jpeg','png','webp','heic','heif','gif'].includes(ext);
+      }
+
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
         alertEl.style.display = 'none';
@@ -492,7 +501,7 @@
 
         let imageValue = listing.imageData || null; // default: keep existing
 
-        if (file && file.type.startsWith('image/')) {
+        if (file && isImageFile(file)) {
           const Cloudinary = window.LivestockConnectCloudinary;
           if (!Cloudinary || !Cloudinary.isCloudinaryConfigured()) {
             showAlert('Photo upload is not configured. Please set up your Cloudinary upload preset in data/config.js.', 'error');

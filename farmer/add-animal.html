@@ -418,13 +418,22 @@
       photoInput.addEventListener('change', function() {
         const file = this.files[0];
         hidePreview();
-        if (file && file.type.startsWith('image/')) {
+        if (file && isImageFile(file)) {
           resizeImageToDataUrl(file, 600, 0.75, showPreview);
         }
       });
       photoRemoveBtn.addEventListener('click', hidePreview);
 
       // Form submit
+
+      // Accept image files even when MIME type is empty (common on iPhone gallery)
+      function isImageFile(file) {
+        if (!file) return false;
+        if (file.type && file.type.startsWith('image/')) return true;
+        const ext = (file.name || '').split('.').pop().toLowerCase();
+        return ['jpg','jpeg','png','webp','heic','heif','gif'].includes(ext);
+      }
+
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
         alertEl.style.display = 'none';
@@ -457,7 +466,7 @@
 
         try {
           // Handle photo upload via Cloudinary
-          if (file && file.type.startsWith('image/')) {
+          if (file && isImageFile(file)) {
             const Cloudinary = window.LivestockConnectCloudinary;
             if (!Cloudinary || !Cloudinary.isCloudinaryConfigured()) {
               showAlert('Photo upload is not configured. Please set up your Cloudinary upload preset in data/config.js.', 'error');
@@ -480,10 +489,11 @@
           const result = await window.LivestockConnectLivestock.addListing(record);
 
           if (result.success) {
-            showAlert('Animal listed successfully!', 'success');
-            form.reset();
-            hidePreview();
-            if (user && user.location) document.getElementById('location').value = user.location;
+            // Redirect to My Listings so the new listing with photo appears immediately
+            window.LivestockConnect.showToast('Animal listed successfully!', 'success');
+            setTimeout(function() {
+              window.location.href = 'my-listings.html';
+            }, 800);
           } else {
             showAlert(result.message || 'Failed to post listing.', 'error');
           }
