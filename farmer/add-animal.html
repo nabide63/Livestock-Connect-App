@@ -489,11 +489,12 @@
           const result = await window.LivestockConnectLivestock.addListing(record);
 
           if (result.success) {
-            // Redirect to My Listings so the new listing with photo appears immediately
-            window.LivestockConnect.showToast('Animal listed successfully!', 'success');
+            showAlert('Animal listed successfully!', 'success');
+            setBusy(true, 'Redirecting…');
+            // Small delay so Supabase has time to commit before my-listings fetches
             setTimeout(function() {
-              window.location.href = 'my-listings.html';
-            }, 800);
+              window.location.href = 'my-listings.html?new=1';
+            }, 1200);
           } else {
             showAlert(result.message || 'Failed to post listing.', 'error');
           }

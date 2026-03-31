@@ -25,7 +25,8 @@
     const client = getClient();
     if (!client) return { success: false, message: 'Supabase not initialized.' };
 
-    const { data, error } = await client.from('listings').insert({
+    // Build insert object — only include image_url if we have a valid https URL
+    const insertData = {
       user_id:       user.id,
       animal_type:   (record.animalType  || '').trim(),
       age:           (record.age         || '').trim(),
@@ -34,18 +35,26 @@
       health_status: (record.healthStatus || 'Healthy').trim(),
       location:      (record.location    || '').trim(),
       description:   (record.description || '').trim(),
-      image_url:     sanitizeImageUrl(record.imageData || record.imageUrl)
-    }).select().single();
+    };
 
-    if (error) return { success: false, message: error.message };
+    // Only set image_url if it's a valid Cloudinary https:// URL
+    const imageUrl = sanitizeImageUrl(record.imageData || record.imageUrl);
+    if (imageUrl) insertData.image_url = imageUrl;
 
-    // Merge original imageData back so local base64 previews show immediately
-    // (Supabase strips base64 per constraint — we keep it in memory only)
-    const listing = mapRow(data);
-    if (record.imageData && !listing.imageData) {
-      listing.imageData = record.imageData;
-      listing.imageUrl  = record.imageData;
+    console.log('addListing — inserting:', {...insertData, image_url: imageUrl || '(none)'});
+
+    const { data, error } = await client.from('listings')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('addListing error:', error);
+      return { success: false, message: error.message };
     }
+
+    console.log('addListing — saved row:', data);
+    const listing = mapRow(data);
     return { success: true, message: 'Animal listed successfully!', listing };
   };
 
