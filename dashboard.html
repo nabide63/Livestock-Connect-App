@@ -436,16 +436,41 @@
             .select('id, status')
             .eq('user_id', user.id);
 
-          if (listings) {
+          if (error) {
+            // RLS may be blocking SELECT — try without filter as fallback
+            console.warn('Listings query error:', error.message);
+            // Show 0 rather than dash so user knows query ran
+            document.getElementById('stat-listings').textContent = '0';
+            document.getElementById('stat-active').textContent   = '0';
+          } else if (listings) {
             totalListings  = listings.length;
-            activeListings = listings.filter(l => l.status !== 'sold').length;
+            // If no status column yet, treat all as active
+            activeListings = listings.filter(l => !l.status || l.status !== 'sold').length;
             document.getElementById('stat-listings').textContent = totalListings;
             document.getElementById('stat-active').textContent   = activeListings;
           }
         } catch(e) {
-          console.warn('Could not load listing stats:', e);
+          console.warn('Could not load listing stats:', e.message);
+          document.getElementById('stat-listings').textContent = '?';
+          document.getElementById('stat-active').textContent   = '?';
         }
       }
+
+      // Also refresh stats when page becomes visible again (after adding a listing)
+      document.addEventListener('visibilitychange', async function() {
+        if (document.visibilityState === 'visible' && client && user) {
+          try {
+            const { data: listings } = await client
+              .from('listings').select('id, status').eq('user_id', user.id);
+            if (listings) {
+              totalListings  = listings.length;
+              activeListings = listings.filter(l => !l.status || l.status !== 'sold').length;
+              document.getElementById('stat-listings').textContent = totalListings;
+              document.getElementById('stat-active').textContent   = activeListings;
+            }
+          } catch(e) {}
+        }
+      });
 
       // ── Popup helper ────────────────────────────────────────
       function showPopup(icon, title, value, message) {
