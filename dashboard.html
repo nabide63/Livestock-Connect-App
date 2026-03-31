@@ -337,10 +337,33 @@
       <div class="hero-sub" id="hero-sub">Loading your dashboard…</div>
     </div>
   </div>
+  <!-- Stat popup overlay -->
+  <div id="stat-popup-overlay" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div id="stat-popup-box" style="background:white;border-radius:20px;padding:28px 24px;max-width:300px;width:88%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;animation:fadeUp .3s cubic-bezier(0.16,1,0.3,1);">
+      <div id="stat-popup-icon" style="font-size:2rem;margin-bottom:10px;"></div>
+      <div id="stat-popup-title" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b;margin-bottom:6px;"></div>
+      <div id="stat-popup-value" style="font-size:3rem;font-weight:800;color:#14532d;line-height:1;margin-bottom:10px;"></div>
+      <p id="stat-popup-msg" style="font-size:.87rem;color:#475569;line-height:1.5;margin-bottom:20px;"></p>
+      <button onclick="document.getElementById('stat-popup-overlay').style.display='none';" style="background:#14532d;color:white;border:none;border-radius:10px;padding:11px 28px;font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;">Got it</button>
+    </div>
+  </div>
+
   <div class="stats-strip">
-    <div class="stat-card"><span class="stat-icon"><i class="fa-solid fa-cow "></i></span><span class="stat-value" id="stat-listings">—</span><span class="stat-label">Listings</span></div>
-    <div class="stat-card"><span class="stat-icon"><i class="fa-solid fa-circle-check "></i></span><span class="stat-value" id="stat-active">—</span><span class="stat-label">Active</span></div>
-    <div class="stat-card"><span class="stat-icon"><i class="fa-solid fa-chart-bar "></i></span><span class="stat-value" id="stat-day">—</span><span class="stat-label">Today</span></div>
+    <button class="stat-card" id="stat-card-listings" aria-label="Total listings info" style="cursor:pointer;border:none;text-align:center;width:100%;font-family:inherit;">
+      <span class="stat-icon"><i class="fa-solid fa-cow"></i></span>
+      <span class="stat-value" id="stat-listings">—</span>
+      <span class="stat-label">Listings</span>
+    </button>
+    <button class="stat-card" id="stat-card-active" aria-label="Active listings info" style="cursor:pointer;border:none;text-align:center;width:100%;font-family:inherit;">
+      <span class="stat-icon"><i class="fa-solid fa-circle-check"></i></span>
+      <span class="stat-value" id="stat-active">—</span>
+      <span class="stat-label">Active</span>
+    </button>
+    <div class="stat-card">
+      <span class="stat-icon"><i class="fa-solid fa-chart-bar"></i></span>
+      <span class="stat-value" id="stat-day">—</span>
+      <span class="stat-label">Today</span>
+    </div>
   </div>
   <div class="dash-content">
     <span class="sec-label">Quick Actions</span>
@@ -379,21 +402,99 @@
     <a href="farmer/add-animal.html" class="nav-item"><div class="nav-icon"><i class="fa-solid fa-plus "></i></div><span>Add</span></a>
     <a href="farmer/my-listings.html" class="nav-item"><div class="nav-icon"><i class="fa-solid fa-list "></i></div><span>Listings</span></a>
     <a href="profile.html" class="nav-item"><div class="nav-icon"><i class="fa-solid fa-user "></i></div><span>Profile</span></a>
-  </nav>  <script src="js/app.js?v=3"></script>
+  </nav>  <script src="data/config.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
   <script src="js/supabase-client.js?v=3"></script>
   <script src="js/auth.js?v=3"></script>
   <script>
     (async function(){
       const ok=await window.LivestockConnect.requireAuth('farmer'); if(!ok)return;
       const user=await window.LivestockConnect.getCurrentUser();
+
+      // Greeting
       const h=new Date().getHours();
       document.getElementById('hero-greeting').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', farmer';
       document.getElementById('hero-name').textContent=user?(user.fullName||'Welcome back'):'Welcome back';
-      document.getElementById('hero-sub').textContent="Here's your farm overview for today.";
+      document.getElementById('hero-sub').textContent="Here\'s your farm overview for today.";
       const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       document.getElementById('stat-day').textContent=days[new Date().getDay()];
-      const client=window.SupabaseClient.getSupabase();
-      if(client&&user){try{const{data:l}=await client.from('listings').select('id,status').eq('user_id',user.id);if(l){document.getElementById('stat-listings').textContent=l.length;document.getElementById('stat-active').textContent=l.filter(x=>x.status!=='sold').length;}}catch(e){}}
+
+      // Fetch ALL listings ever posted by this farmer (including sold/deleted ones via a count)
+      // We use two queries:
+      // 1. Current listings (not deleted) — this is what's in the DB now
+      // 2. Total ever = we store a running count OR just use current count
+      // Since Supabase doesn't track deleted rows, total = current rows in DB
+      // Active = rows where status != 'sold'
+      let totalListings = 0;
+      let activeListings = 0;
+
+      const client = window.SupabaseClient.getSupabase();
+      if (client && user) {
+        try {
+          const { data: listings, error } = await client
+            .from('listings')
+            .select('id, status')
+            .eq('user_id', user.id);
+
+          if (listings) {
+            totalListings  = listings.length;
+            activeListings = listings.filter(l => l.status !== 'sold').length;
+            document.getElementById('stat-listings').textContent = totalListings;
+            document.getElementById('stat-active').textContent   = activeListings;
+          }
+        } catch(e) {
+          console.warn('Could not load listing stats:', e);
+        }
+      }
+
+      // ── Popup helper ────────────────────────────────────────
+      function showPopup(icon, title, value, message) {
+        document.getElementById('stat-popup-icon').innerHTML  = icon;
+        document.getElementById('stat-popup-title').textContent = title;
+        document.getElementById('stat-popup-value').textContent = value;
+        document.getElementById('stat-popup-msg').textContent   = message;
+        const overlay = document.getElementById('stat-popup-overlay');
+        overlay.style.display = 'flex';
+      }
+
+      // Close popup when clicking overlay background
+      document.getElementById('stat-popup-overlay').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+      });
+
+      // ── Listings card click ──────────────────────────────────
+      document.getElementById('stat-card-listings').addEventListener('click', function() {
+        const n = document.getElementById('stat-listings').textContent;
+        const num = parseInt(n) || 0;
+        showPopup(
+          '<i class="fa-solid fa-cow" style="color:#15803d;"></i>',
+          'Total Listings',
+          n === '—' ? '—' : n,
+          num === 0
+            ? "You haven\'t listed any animals yet. Tap \"Add\" to post your first listing!"
+            : 'You have so far uploaded ' + num + ' ' + (num === 1 ? 'animal' : 'animals') + ' on Livestock Connect.'
+        );
+      });
+
+      // ── Active card click ────────────────────────────────────
+      document.getElementById('stat-card-active').addEventListener('click', function() {
+        const n = document.getElementById('stat-active').textContent;
+        const num = parseInt(n) || 0;
+        const total = parseInt(document.getElementById('stat-listings').textContent) || 0;
+        const sold  = total - num;
+        showPopup(
+          '<i class="fa-solid fa-circle-check" style="color:#15803d;"></i>',
+          'Active Listings',
+          n === '—' ? '—' : n,
+          num === 0
+            ? (total === 0
+                ? "You have no active listings. Post an animal to get started!"
+                : 'All ' + total + ' ' + (total === 1 ? 'listing has' : 'listings have') + ' been sold or removed. Great work!')
+            : 'You currently have ' + num + ' ' + (num === 1 ? 'animal' : 'animals') + ' available for sale on the platform.' +
+              (sold > 0 ? ' ' + sold + ' ' + (sold === 1 ? 'listing has' : 'listings have') + ' been sold or removed.' : '')
+        );
+      });
+
     })();
   </script>
 </body>
