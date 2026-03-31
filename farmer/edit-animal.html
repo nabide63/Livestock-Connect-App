@@ -319,10 +319,25 @@
           <textarea id="description" class="input" name="description" placeholder="Extra details…"></textarea>
         </div>
         <div class="field fade-in d4">
-          <label class="field-label"><i class="fa-solid fa-camera "></i> Current Photo</label>
-          <div id="current-photo" style="display:none;margin-bottom:8px;"></div>
-          <label class="field-label" for="photo" style="margin-top:8px;">Replace Photo</label>
-          <input type="file" id="photo" name="photo" accept="image/*" class="input" style="padding:10px;">
+          <label class="field-label"><i class="fa-solid fa-camera"></i> Photo</label>
+          <!-- Current photo -->
+          <div id="current-photo" style="display:none;margin-bottom:10px;border-radius:12px;overflow:hidden;"></div>
+          <!-- Hidden real file input -->
+          <input type="file" id="photo" name="photo" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+          <!-- Tappable upload area -->
+          <div id="photo-upload-btn" style="
+            display:flex;align-items:center;justify-content:center;gap:10px;
+            border:2px dashed var(--s300,#cbd5e1);border-radius:14px;
+            padding:18px 16px;cursor:pointer;background:var(--s50,#f8fafc);
+            transition:border-color .15s,background .15s;
+            -webkit-tap-highlight-color:transparent;
+          ">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.3rem;color:var(--g600,#16a34a);"></i>
+            <div>
+              <div style="font-size:.88rem;font-weight:700;color:var(--s700,#334155);">Tap to replace photo</div>
+              <div style="font-size:.73rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
+            </div>
+          </div>
           <div id="photo-preview-wrap" class="photo-wrap">
             <div id="photo-preview"></div>
           </div>
@@ -441,7 +456,21 @@
 
       const photoInput = document.getElementById('photo');
       const photoPreview = document.getElementById('photo-preview');
+      let capturedFile = null;
+
+      const uploadBtn = document.getElementById('photo-upload-btn');
+      if (uploadBtn) {
+        uploadBtn.addEventListener('click', function() { photoInput.click(); });
+      }
+
       photoInput.addEventListener('change', function () {
+        capturedFile = this.files[0] || null;
+        console.log('Edit photo selected:', capturedFile ? capturedFile.name : '(none)');
+        if (uploadBtn && capturedFile) {
+          uploadBtn.style.borderColor = 'var(--g600,#16a34a)';
+          uploadBtn.style.background = 'var(--g50,#f0fdf4)';
+          uploadBtn.innerHTML = '<i class="fa-solid fa-image" style="font-size:1.2rem;color:var(--g600);"></i><div><div style="font-size:.85rem;font-weight:700;color:var(--g700);">' + capturedFile.name + '</div><div style="font-size:.72rem;color:var(--s400);">Tap to change</div></div>';
+        }
         const file = this.files[0];
         photoPreview.style.display = 'none';
         photoPreview.innerHTML = '';
@@ -493,7 +522,7 @@
         e.preventDefault();
         alertEl.style.display = 'none';
 
-        const file = photoInput.files[0];
+        const file = capturedFile || photoInput.files[0];
         const newDataUrl = photoPreview.getAttribute('data-url');
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
