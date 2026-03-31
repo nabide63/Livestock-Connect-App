@@ -323,9 +323,9 @@
           <!-- Current photo -->
           <div id="current-photo" style="display:none;margin-bottom:10px;border-radius:12px;overflow:hidden;"></div>
           <!-- Hidden real file input -->
-          <input type="file" id="photo" name="photo" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+          <input type="file" id="photo" name="photo" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;z-index:-1;">
           <!-- Tappable upload area -->
-          <div id="photo-upload-btn" style="
+          <label for="photo" id="photo-upload-btn" style="
             display:flex;align-items:center;justify-content:center;gap:10px;
             border:2px dashed var(--s300,#cbd5e1);border-radius:14px;
             padding:18px 16px;cursor:pointer;background:var(--s50,#f8fafc);
@@ -337,7 +337,7 @@
               <div style="font-size:.88rem;font-weight:700;color:var(--s700,#334155);">Tap to replace photo</div>
               <div style="font-size:.73rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
             </div>
-          </div>
+          </label>
           <div id="photo-preview-wrap" class="photo-wrap">
             <div id="photo-preview"></div>
           </div>

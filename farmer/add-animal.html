@@ -324,9 +324,9 @@
         <div class="field fade-in d4">
           <label class="field-label"><i class="fa-solid fa-camera"></i> Photo <span style="font-weight:400;text-transform:none;color:var(--s400,#94a3b8);">(optional)</span></label>
           <!-- Hidden real file input -->
-          <input type="file" id="photo" name="photo" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+          <input type="file" id="photo" name="photo" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;z-index:-1;">
           <!-- Tappable upload button -->
-          <div id="photo-upload-btn" style="
+          <label for="photo" id="photo-upload-btn" style="
             display:flex;align-items:center;justify-content:center;gap:10px;
             border:2px dashed var(--s300,#cbd5e1);border-radius:14px;
             padding:20px 16px;cursor:pointer;background:var(--s50,#f8fafc);
@@ -338,7 +338,7 @@
               <div style="font-size:.9rem;font-weight:700;color:var(--s700,#334155);">Tap to choose photo</div>
               <div style="font-size:.75rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
             </div>
-          </div>
+          </label>
           <!-- Preview area -->
           <div id="photo-preview-wrap" class="photo-wrap">
             <div id="photo-preview"></div>
@@ -419,9 +419,10 @@
       }
 
       function showPreview(dataUrl) {
-        photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview" class="photo-preview-img">';
+        photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview" style="width:100%;max-height:220px;object-fit:contain;border-radius:12px;display:block;background:#f8fafc;">';
         photoPreview.setAttribute('data-url', dataUrl);
         photoPreviewWrap.style.display = 'block';
+        photoPreviewWrap.style.marginTop = '10px';
       }
 
       // ── CRITICAL: capture File object immediately on selection ──
@@ -439,8 +440,7 @@
         photoPreview.innerHTML = '';
         photoPreview.removeAttribute('data-url');
         photoPreviewWrap.style.display = 'none';
-        photoInput.value = '';
-        capturedFile = null; // clear captured file too
+        // Note: do NOT clear capturedFile here - it's set before hidePreview is called
       }
 
       // Wire tap button to hidden file input
@@ -468,6 +468,7 @@
       });
 
       photoRemoveBtn.addEventListener('click', function() {
+        capturedFile = null; // clear when user explicitly removes photo
         hidePreview();
         // Reset upload button
         if (uploadBtn) {
