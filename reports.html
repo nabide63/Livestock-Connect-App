@@ -318,18 +318,24 @@
       const ok=await window.LivestockConnect.requireAuth('farmer');if(!ok)return;
       const LC=window.LivestockConnect,Livestock=window.LivestockConnectLivestock;
       const btn=document.getElementById('generate-btn'),content=document.getElementById('report-content'),empty=document.getElementById('report-empty');
-      btn.addEventListener('click',function(){
-        const list=Livestock.getMyListings();
+
+      btn.addEventListener('click',async function(){
+        const list=await Livestock.getMyListings();
         if(!list.length){content.style.display='none';empty.style.display='block';return;}
         empty.style.display='none';content.style.display='block';
         document.getElementById('report-total').textContent=list.length;
         const byType={};let tw=0,wc=0;
-        list.forEach(function(item){byType[item.animalType||'Other']=(byType[item.animalType||'Other']||0)+1;const w=parseFloat(item.weight);if(!isNaN(w)){tw+=w;wc++;}});
+        list.forEach(function(item){
+          byType[item.animalType||'Other']=(byType[item.animalType||'Other']||0)+1;
+          const w=parseFloat(item.weight);if(!isNaN(w)){tw+=w;wc++;}
+        });
         document.getElementById('report-avg-weight').textContent=wc>0?(tw/wc).toFixed(1):'0';
-        document.getElementById('report-by-type').innerHTML=Object.entries(byType).map(([t,n])=>'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--s100);"><span style="font-size:.86rem;color:var(--s600);">'+t+'</span><span style="font-size:.86rem;font-weight:700;">'+n+'</span></div>').join('');
+        document.getElementById('report-by-type').innerHTML=Object.entries(byType).map(function(e){
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--s100);"><span style="font-size:.86rem;color:var(--s600);">'+e[0]+'</span><span style="font-size:.86rem;font-weight:700;">'+e[1]+'</span></div>';
+        }).join('');
         LC.showToast('Report generated.');
       });
     })();
-  </script>
+</script>
 </body>
 </html>

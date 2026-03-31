@@ -138,7 +138,7 @@
   /* ── Listing cards ── */
   .cards-list { display:flex; flex-direction:column; gap:12px; padding:12px 16px 4px; }
   .lcard { background:var(--white); border-radius:var(--r-lg); border:1px solid var(--s200); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); animation:fadeUp .4s var(--ease) both; }
-  .lcard-img { width:100%; height:160px; object-fit:cover; background:var(--s100); }
+  .lcard-img { width:100%; height:200px; object-fit:contain; background:var(--s50); border-bottom:1px solid var(--s200); }
   .lcard-img-placeholder { width:100%; height:120px; background:var(--g50); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:var(--g400); }
   .lcard-body { padding:13px 14px 14px; }
   .lcard-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
@@ -309,8 +309,10 @@
       const ok=await window.LivestockConnect.requireAuth('farmer');if(!ok)return;
       const listEl=document.getElementById('livestock-list'),emptyEl=document.getElementById('empty-state');
       const LC=window.LivestockConnect,Livestock=window.LivestockConnectLivestock;
+
       async function renderList(){
-        const list=Livestock.getMyListings();listEl.innerHTML='';
+        const list=await Livestock.getMyListings();
+        listEl.innerHTML='';
         if(!list.length){listEl.style.display='none';emptyEl.style.display='block';return;}
         listEl.style.display='flex';emptyEl.style.display='none';
         list.forEach(function(item,i){
@@ -330,14 +332,18 @@
           listEl.appendChild(card);
         });
       }
-      listEl.addEventListener('click',function(e){
+
+      listEl.addEventListener('click',async function(e){
         const btn=e.target.closest('button[data-id]');if(!btn)return;
         if(!confirm('Remove this listing?'))return;
-        const r=Livestock.deleteListing(btn.getAttribute('data-id'));
-        LC.showToast(r.message,r.success?'success':'error');if(r.success)renderList();
+        const r=await Livestock.deleteListing(btn.getAttribute('data-id'));
+        LC.showToast(r.message,r.success?'success':'error');
+        if(r.success)renderList();
       });
-      renderList();LC.onPageShowRefresh(renderList);
+
+      renderList();
+      LC.onPageShowRefresh(renderList);
     })();
-  </script>
+</script>
 </body>
 </html>

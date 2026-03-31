@@ -138,7 +138,7 @@
   /* ── Listing cards ── */
   .cards-list { display:flex; flex-direction:column; gap:12px; padding:12px 16px 4px; }
   .lcard { background:var(--white); border-radius:var(--r-lg); border:1px solid var(--s200); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); animation:fadeUp .4s var(--ease) both; }
-  .lcard-img { width:100%; height:160px; object-fit:cover; background:var(--s100); }
+  .lcard-img { width:100%; height:200px; object-fit:contain; background:var(--s50); border-bottom:1px solid var(--s200); }
   .lcard-img-placeholder { width:100%; height:120px; background:var(--g50); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:var(--g400); }
   .lcard-body { padding:13px 14px 14px; }
   .lcard-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
@@ -308,13 +308,15 @@
       const ok=await window.LivestockConnect.requireAuth('buyer');if(!ok)return;
       const container=document.getElementById('details-container'),notFound=document.getElementById('not-found');
       const Livestock=window.LivestockConnectLivestock,LC=window.LivestockConnect;
+
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-      function show(){
+
+      async function show(){
         const id=new URLSearchParams(window.location.search).get('id')||'';
         if(!id){notFound.style.display='block';return;}
-        const listing=Livestock.getListingById(id);
+        const listing=await Livestock.getListingById(id);
         if(!listing){notFound.style.display='block';return;}
-        const farmer=Livestock.getFarmerById(listing.userId);
+        const farmer=await Livestock.getFarmerById(listing.userId);
         const farmerName=farmer?farmer.fullName:'Farmer';
         const priceStr=isNaN(parseInt(listing.price))?(listing.price||'—'):LC.formatUGX(parseInt(listing.price));
         const healthClass=LC.getHealthBadgeClass(listing.healthStatus);
@@ -322,7 +324,7 @@
         const safeImg=imgUrl?imgUrl.replace(/"/g,'&quot;').replace(/'/g,'&#39;'):'';
         container.style.display='block';
         container.innerHTML=
-          (imgUrl?'<img style="width:100%;max-height:260px;object-fit:cover;display:block;" src="'+safeImg+'" alt="'+esc(listing.animalType)+'">':'<div style="width:100%;height:160px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:3.5rem;color:var(--g400);"><i class=\"fa-solid fa-cow\"></i></div>')+
+          (imgUrl?'<img style="width:100%;max-height:300px;object-fit:contain;display:block;background:var(--s50);" src="'+safeImg+'" alt="'+esc(listing.animalType)+'">':'<div style="width:100%;height:160px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:3.5rem;color:var(--g400);"><i class=\"fa-solid fa-cow\"></i></div>')+
           '<div style="padding:16px;">'+
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'+
               '<span style="font-size:1.2rem;font-weight:800;">'+esc(listing.animalType||'Animal')+'</span>'+
@@ -339,8 +341,10 @@
             '<a href="contact-farmer.html?userId='+encodeURIComponent(listing.userId)+'" class="btn btn-primary btn-block"><i class="fa-solid fa-phone"></i> Contact Farmer</a>'+
           '</div>';
       }
-      show();LC.onPageShowRefresh(show);
+
+      show();
+      LC.onPageShowRefresh(show);
     })();
-  </script>
+</script>
 </body>
 </html>

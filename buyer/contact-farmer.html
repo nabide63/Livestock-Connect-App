@@ -309,10 +309,11 @@
       const ok=await window.LivestockConnect.requireAuth('buyer');if(!ok)return;
       const container=document.getElementById('contact-container'),notFound=document.getElementById('not-found');
       const Livestock=window.LivestockConnectLivestock,LC=window.LivestockConnect;
-      function show(){
+
+      async function show(){
         const userId=new URLSearchParams(window.location.search).get('userId');
         if(!userId){notFound.style.display='block';return;}
-        const farmer=Livestock.getFarmerById(userId);
+        const farmer=await Livestock.getFarmerById(userId);
         if(!farmer){notFound.style.display='block';return;}
         const telLink='tel:'+(farmer.phone||'').replace(/\s/g,'');
         container.innerHTML=
@@ -325,8 +326,10 @@
           '</div>'+
           '<p class="text-muted text-center text-small mt-16">Use the number above to contact the farmer directly.</p>';
       }
-      show();LC.onPageShowRefresh(show);
+
+      show();
+      LC.onPageShowRefresh(show);
     })();
-  </script>
+</script>
 </body>
 </html>

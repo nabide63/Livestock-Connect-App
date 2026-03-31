@@ -139,7 +139,7 @@
   /* ── Listing cards ── */
   .cards-list { display:flex; flex-direction:column; gap:12px; padding:12px 16px 4px; }
   .lcard { background:var(--white); border-radius:var(--r-lg); border:1px solid var(--s200); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); animation:fadeUp .4s var(--ease) both; }
-  .lcard-img { width:100%; height:160px; object-fit:cover; background:var(--s100); }
+  .lcard-img { width:100%; height:200px; object-fit:contain; background:var(--s50); border-bottom:1px solid var(--s200); }
   .lcard-img-placeholder { width:100%; height:120px; background:var(--g50); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:var(--g400); }
   .lcard-body { padding:13px 14px 14px; }
   .lcard-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
@@ -456,6 +456,8 @@
 
         try {
           // Handle photo upload
+          // Only send to Supabase if Cloudinary is configured (gives a valid https:// URL).
+          // Base64 data: URLs violate the listings_image_url_https DB constraint — skip them.
           if (file && file.type.startsWith('image/')) {
             const Cloudinary = window.LivestockConnectCloudinary;
             if (Cloudinary && Cloudinary.isCloudinaryConfigured && Cloudinary.isCloudinaryConfigured()) {
@@ -463,17 +465,14 @@
               try {
                 record.imageData = await Cloudinary.uploadImage(file);
               } catch(uploadErr) {
-                record.imageData = previewUrl || await new Promise(resolve =>
-                  resizeImageToDataUrl(file, 600, 0.75, resolve)
-                );
+                // Cloudinary failed — skip photo rather than sending base64
+                console.warn('Photo upload failed, listing without photo:', uploadErr);
+                record.imageData = null;
               }
             } else {
-              record.imageData = await new Promise(resolve =>
-                resizeImageToDataUrl(file, 600, 0.75, resolve)
-              );
+              // No cloud storage configured — skip photo
+              record.imageData = null;
             }
-          } else if (previewUrl) {
-            record.imageData = previewUrl;
           }
 
           // FIX: addListing is async — must be awaited

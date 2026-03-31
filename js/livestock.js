@@ -10,6 +10,13 @@
   const getClient = () => window.SupabaseClient ? window.SupabaseClient.getSupabase() : null;
   const getUser   = () => window.SupabaseClient ? window.SupabaseClient.getCurrentUser() : null;
 
+  // Only send image_url if it's a real https:// URL.
+  // base64 data: URLs violate the listings_image_url_https constraint.
+  function sanitizeImageUrl(url) {
+    if (url && typeof url === 'string' && url.startsWith('https://')) return url;
+    return undefined; // undefined = field omitted from Supabase insert
+  }
+
   // ── Add listing ──────────────────────────────────────────
   const addListing = async (record) => {
     const user = await getUser();
@@ -27,7 +34,7 @@
       health_status: record.healthStatus || 'Healthy',
       location:      (record.location    || '').trim(),
       description:   (record.description || '').trim(),
-      image_url:     record.imageData || record.imageUrl || null
+      image_url:     sanitizeImageUrl(record.imageData || record.imageUrl)
     }).select().single();
 
     return error
@@ -51,7 +58,7 @@
       health_status: updates.healthStatus || 'Healthy',
       location:      (updates.location    || '').trim(),
       description:   (updates.description || '').trim(),
-      image_url:     updates.imageData || updates.imageUrl || null
+      image_url:     sanitizeImageUrl(updates.imageData || updates.imageUrl)
     }).eq('id', id).eq('user_id', user.id);
 
     return error
@@ -81,22 +88,25 @@
   const getAllListings = async () => {
     const client = getClient();
     if (!client) return [];
-    const { data } = await client.from('listings')
+    const { data, error } = await client.from('listings')
       .select('*')
       .order('created_at', { ascending: false });
+    if (error) { console.error('getAllListings error:', error.message); return []; }
     return (data || []).map(mapRow);
   };
 
   // ── Get my listings (farmer) ─────────────────────────────
   const getMyListings = async () => {
     const user = await getUser();
-    if (!user) return [];
+    if (!user) { console.warn('getMyListings: no user'); return []; }
     const client = getClient();
-    if (!client) return [];
-    const { data } = await client.from('listings')
+    if (!client) { console.warn('getMyListings: no client'); return []; }
+    const { data, error } = await client.from('listings')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+    if (error) { console.error('getMyListings error:', error.message); return []; }
+    console.log('getMyListings: found', (data||[]).length, 'listings');
     return (data || []).map(mapRow);
   };
 
