@@ -322,22 +322,17 @@
           <label class="field-label"><i class="fa-solid fa-camera"></i> Photo</label>
           <!-- Current photo -->
           <div id="current-photo" style="display:none;margin-bottom:10px;border-radius:12px;overflow:hidden;"></div>
-          <!-- Hidden real file input -->
-          <input type="file" id="photo" name="photo" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;z-index:-1;">
-          <!-- Tappable upload area -->
-          <label for="photo" id="photo-upload-btn" style="
-            display:flex;align-items:center;justify-content:center;gap:10px;
-            border:2px dashed var(--s300,#cbd5e1);border-radius:14px;
-            padding:18px 16px;cursor:pointer;background:var(--s50,#f8fafc);
-            transition:border-color .15s,background .15s;
-            -webkit-tap-highlight-color:transparent;
-          ">
-            <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.3rem;color:var(--g600,#16a34a);"></i>
-            <div>
-              <div style="font-size:.88rem;font-weight:700;color:var(--s700,#334155);">Tap to replace photo</div>
-              <div style="font-size:.73rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
+          <div style="position:relative;border:2px dashed var(--s300,#cbd5e1);border-radius:14px;overflow:hidden;background:var(--s50,#f8fafc);" id="photo-upload-btn">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 16px;pointer-events:none;">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.3rem;color:var(--g600,#16a34a);"></i>
+              <div>
+                <div id="photo-btn-title" style="font-size:.88rem;font-weight:700;color:var(--s700,#334155);">Tap to replace photo</div>
+                <div style="font-size:.73rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
+              </div>
             </div>
-          </label>
+            <input type="file" id="photo" name="photo" accept="image/*"
+              style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
+          </div>
           <div id="photo-preview-wrap" class="photo-wrap">
             <div id="photo-preview"></div>
           </div>
@@ -469,7 +464,8 @@
         if (uploadBtn && capturedFile) {
           uploadBtn.style.borderColor = 'var(--g600,#16a34a)';
           uploadBtn.style.background = 'var(--g50,#f0fdf4)';
-          uploadBtn.innerHTML = '<i class="fa-solid fa-image" style="font-size:1.2rem;color:var(--g600);"></i><div><div style="font-size:.85rem;font-weight:700;color:var(--g700);">' + capturedFile.name + '</div><div style="font-size:.72rem;color:var(--s400);">Tap to change</div></div>';
+          const titleEl = document.getElementById('photo-btn-title');
+          if (titleEl) titleEl.textContent = capturedFile.name;
         }
         const file = this.files[0];
         photoPreview.style.display = 'none';

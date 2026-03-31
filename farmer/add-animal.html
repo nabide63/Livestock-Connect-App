@@ -324,21 +324,17 @@
         <div class="field fade-in d4">
           <label class="field-label"><i class="fa-solid fa-camera"></i> Photo <span style="font-weight:400;text-transform:none;color:var(--s400,#94a3b8);">(optional)</span></label>
           <!-- Hidden real file input -->
-          <input type="file" id="photo" name="photo" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;z-index:-1;">
-          <!-- Tappable upload button -->
-          <label for="photo" id="photo-upload-btn" style="
-            display:flex;align-items:center;justify-content:center;gap:10px;
-            border:2px dashed var(--s300,#cbd5e1);border-radius:14px;
-            padding:20px 16px;cursor:pointer;background:var(--s50,#f8fafc);
-            transition:border-color .15s,background .15s;
-            -webkit-tap-highlight-color:transparent;
-          ">
-            <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.4rem;color:var(--g600,#16a34a);"></i>
-            <div>
-              <div style="font-size:.9rem;font-weight:700;color:var(--s700,#334155);">Tap to choose photo</div>
-              <div style="font-size:.75rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
+          <div style="position:relative;border:2px dashed var(--s300,#cbd5e1);border-radius:14px;overflow:hidden;background:var(--s50,#f8fafc);" id="photo-upload-btn">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:20px 16px;pointer-events:none;">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.4rem;color:var(--g600,#16a34a);"></i>
+              <div>
+                <div id="photo-btn-title" style="font-size:.9rem;font-weight:700;color:var(--s700,#334155);">Tap to choose photo</div>
+                <div style="font-size:.75rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div>
+              </div>
             </div>
-          </label>
+            <input type="file" id="photo" name="photo" accept="image/*"
+              style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
+          </div>
           <!-- Preview area -->
           <div id="photo-preview-wrap" class="photo-wrap">
             <div id="photo-preview"></div>
@@ -362,13 +358,15 @@
       const _authOk = await window.LivestockConnect.requireAuth('farmer');
       if (!_authOk) return;
 
-      const form       = document.getElementById('add-animal-form');
-      const alertEl    = document.getElementById('add-alert');
-      const submitBtn  = document.getElementById('submit-btn');
-      const photoInput = document.getElementById('photo');
-      const photoPreview     = document.getElementById('photo-preview');
+      const form           = document.getElementById('add-animal-form');
+      const alertEl        = document.getElementById('add-alert');
+      const submitBtn      = document.getElementById('submit-btn');
+      const photoInput     = document.getElementById('photo');
+      const photoPreview   = document.getElementById('photo-preview');
       const photoPreviewWrap = document.getElementById('photo-preview-wrap');
-      const photoRemoveBtn   = document.getElementById('photo-remove');
+      const photoRemoveBtn = document.getElementById('photo-remove');
+      const uploadBtn      = document.getElementById('photo-upload-btn');
+      const photoBtnTitle  = document.getElementById('photo-btn-title');
 
       // Populate animal types
       const animalTypeSelect = document.getElementById('animalType');
@@ -381,7 +379,7 @@
         animalTypeSelect.appendChild(opt);
       });
 
-      // Pre-fill location from user profile
+      // Pre-fill location
       const user = await window.LivestockConnect.getCurrentUser();
       if (user && user.location) document.getElementById('location').value = user.location;
 
@@ -395,11 +393,10 @@
       function setBusy(busy, label) {
         submitBtn.disabled = busy;
         submitBtn.innerHTML = busy
-          ? '<i class="fa-solid fa-spinner fa-spin"></i> ' + (label || 'Posting…')
+          ? '<i class="fa-solid fa-spinner fa-spin"></i> ' + (label || 'Posting\u2026')
           : '<i class="fa-solid fa-plus"></i> Post Listing';
       }
 
-      // Photo preview helpers
       function resizeImageToDataUrl(file, maxWidth, quality, callback) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -418,17 +415,6 @@
         reader.readAsDataURL(file);
       }
 
-      function showPreview(dataUrl) {
-        photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview" style="width:100%;max-height:220px;object-fit:contain;border-radius:12px;display:block;background:#f8fafc;">';
-        photoPreview.setAttribute('data-url', dataUrl);
-        photoPreviewWrap.style.display = 'block';
-        photoPreviewWrap.style.marginTop = '10px';
-      }
-
-      // ── CRITICAL: capture File object immediately on selection ──
-      // file input loses its reference on some browsers before submit
-      let capturedFile = null;
-
       function isImageFile(f) {
         if (!f) return false;
         if (f.type && f.type.startsWith('image/')) return true;
@@ -436,47 +422,45 @@
         return ['jpg','jpeg','png','webp','heic','heif','gif'].includes(ext);
       }
 
+      function showPreview(dataUrl) {
+        photoPreview.innerHTML = '<img src="' + dataUrl + '" alt="Preview" style="width:100%;max-height:220px;object-fit:contain;border-radius:12px;display:block;background:#f8fafc;">';
+        photoPreview.setAttribute('data-url', dataUrl);
+        photoPreviewWrap.style.display = 'block';
+      }
+
       function hidePreview() {
         photoPreview.innerHTML = '';
         photoPreview.removeAttribute('data-url');
         photoPreviewWrap.style.display = 'none';
-        // Note: do NOT clear capturedFile here - it's set before hidePreview is called
       }
 
-      // Wire tap button to hidden file input
-      const uploadBtn = document.getElementById('photo-upload-btn');
-      if (uploadBtn) {
-        uploadBtn.addEventListener('click', function() {
-          photoInput.click();
-        });
+      function resetUploadBtn() {
+        if (uploadBtn) { uploadBtn.style.borderColor = ''; uploadBtn.style.background = ''; }
+        if (photoBtnTitle) photoBtnTitle.textContent = 'Tap to choose photo';
       }
+
+      // Capture file at selection time (input overlay fires change directly)
+      let capturedFile = null;
 
       photoInput.addEventListener('change', function() {
-        const file = this.files[0];
-        capturedFile = file || null; // capture immediately
+        capturedFile = this.files[0] || null;
         console.log('Photo selected:', capturedFile ? capturedFile.name : '(none)');
         hidePreview();
         if (capturedFile && isImageFile(capturedFile)) {
-          // Update upload btn to show file name
-          if (uploadBtn) {
-            uploadBtn.style.borderColor = 'var(--g600,#16a34a)';
-            uploadBtn.style.background = 'var(--g50,#f0fdf4)';
-            uploadBtn.innerHTML = '<i class="fa-solid fa-image" style="font-size:1.2rem;color:var(--g600,#16a34a);"></i><div><div style="font-size:.88rem;font-weight:700;color:var(--g700,#15803d);">' + capturedFile.name + '</div><div style="font-size:.72rem;color:var(--s400);">Tap to change</div></div>';
-          }
+          if (uploadBtn) { uploadBtn.style.borderColor = 'var(--g600,#16a34a)'; uploadBtn.style.background = 'var(--g50,#f0fdf4)'; }
+          if (photoBtnTitle) photoBtnTitle.textContent = capturedFile.name;
           resizeImageToDataUrl(capturedFile, 600, 0.75, showPreview);
         }
       });
 
-      photoRemoveBtn.addEventListener('click', function() {
-        capturedFile = null; // clear when user explicitly removes photo
-        hidePreview();
-        // Reset upload button
-        if (uploadBtn) {
-          uploadBtn.style.borderColor = '';
-          uploadBtn.style.background = '';
-          uploadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="font-size:1.4rem;color:var(--g600,#16a34a);"></i><div><div style="font-size:.9rem;font-weight:700;color:var(--s700,#334155);">Tap to choose photo</div><div style="font-size:.75rem;color:var(--s400,#94a3b8);margin-top:2px;">Gallery, camera or files</div></div>';
-        }
-      });
+      if (photoRemoveBtn) {
+        photoRemoveBtn.addEventListener('click', function() {
+          capturedFile = null;
+          photoInput.value = '';
+          hidePreview();
+          resetUploadBtn();
+        });
+      }
 
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -503,28 +487,26 @@
           imageData:   null
         };
 
-        // Use capturedFile (stored at selection time) not photoInput.files[0]
-        // which may be empty by submit time on some browsers
         const file       = capturedFile;
         const previewUrl = photoPreview.getAttribute('data-url');
         console.log('Submit — capturedFile:', file ? file.name : '(none)', '| isImageFile:', isImageFile(file));
 
-        setBusy(true, 'Posting…');
+        setBusy(true, 'Posting\u2026');
 
         try {
-          // Handle photo upload via Cloudinary
           if (file && isImageFile(file)) {
             const Cloudinary = window.LivestockConnectCloudinary;
             if (!Cloudinary || !Cloudinary.isCloudinaryConfigured()) {
-              showAlert('Photo upload is not configured. Please set up your Cloudinary upload preset in data/config.js.', 'error');
+              showAlert('Photo upload not configured. Set up your Cloudinary preset in data/config.js.', 'error');
               setBusy(false);
               return;
             }
-            setBusy(true, 'Uploading photo… 0%');
+            setBusy(true, 'Uploading photo\u2026 0%');
             try {
               record.imageData = await Cloudinary.uploadImage(file, function(pct) {
-                setBusy(true, 'Uploading photo… ' + pct + '%');
+                setBusy(true, 'Uploading photo\u2026 ' + pct + '%');
               });
+              console.log('Cloudinary URL:', record.imageData);
             } catch(uploadErr) {
               showAlert('Photo upload failed: ' + uploadErr.message, 'error');
               setBusy(false);
@@ -532,22 +514,20 @@
             }
           }
 
-          // FIX: addListing is async — must be awaited
           const result = await window.LivestockConnectLivestock.addListing(record);
 
           if (result.success) {
             showAlert('Animal listed successfully!', 'success');
-            setBusy(true, 'Redirecting…');
-            // Small delay so Supabase has time to commit before my-listings fetches
+            setBusy(true, 'Redirecting\u2026');
             setTimeout(function() {
               window.location.href = 'my-listings.html?new=1';
             }, 1200);
           } else {
             showAlert(result.message || 'Failed to post listing.', 'error');
+            setBusy(false);
           }
         } catch(err) {
           showAlert('An error occurred: ' + err.message, 'error');
-        } finally {
           setBusy(false);
         }
       });
